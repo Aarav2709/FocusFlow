@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Yeolpumta.Views.TimerView">
+  <StackPanel Spacing="8">
+    <TextBlock Text="Focus Timer" FontSize="18" FontWeight="SemiBold"/>
+    <TextBlock Text="{Binding RemainingDisplay}" FontSize="48" HorizontalAlignment="Center"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+      <Button Content="Start Work" Command="{Binding StartWorkCommand}"/>
+      <Button Content="Short Break" Command="{Binding StartShortBreakCommand}"/>
+      <Button Content="Long Break" Command="{Binding StartLongBreakCommand}"/>
+      <Button Content="Stop" Command="{Binding StopCommand}"/>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+      <TextBlock Text="Work"/>
+      <NumericUpDown Minimum="5" Maximum="120" Value="{Binding WorkMinutes}"/>
+      <TextBlock Text="Short"/>
+      <NumericUpDown Minimum="1" Maximum="60" Value="{Binding ShortBreakMinutes}"/>
+      <TextBlock Text="Long"/>
+      <NumericUpDown Minimum="5" Maximum="60" Value="{Binding LongBreakMinutes}"/>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

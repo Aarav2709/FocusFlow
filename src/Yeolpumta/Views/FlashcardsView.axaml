@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Yeolpumta.Views.FlashcardsView">
+  <Grid RowDefinitions="Auto, *" RowSpacing="8" ColumnDefinitions="*, 320" ColumnSpacing="12">
+    <TextBlock Grid.ColumnSpan="2" Text="Flashcards" FontSize="18" FontWeight="SemiBold"/>
+    <ListBox Grid.Row="1" Items="{Binding Cards}" SelectedItem="{Binding Selected}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel>
+            <TextBlock Text="{Binding Front}" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding Deck}" Opacity="0.6"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6">
+      <TextBox Watermark="Front" Text="{Binding EditFront}"/>
+      <TextBox Watermark="Back" Text="{Binding EditBack}" AcceptsReturn="True" Height="120"/>
+      <TextBox Watermark="Deck" Text="{Binding EditDeck}"/>
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <Button Content="New" Command="{Binding NewCommand}"/>
+        <Button Content="Save" Command="{Binding SaveCommand}"/>
+        <Button Content="Delete" Command="{Binding DeleteCommand}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+        <Button Content="Correct" Command="{Binding MarkCorrectCommand}"/>
+        <Button Content="Wrong" Command="{Binding MarkWrongCommand}"/>
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</UserControl>
