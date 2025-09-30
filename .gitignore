@@ -28,3 +28,41 @@ Thumbs.db
 build/
 *.node
 
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Caches and temp
+.cache/
+.vite/
+dist-*/
+
+# JetBrains
+.idea/
+
+# OS-specific
+.Spotlight-V100
+.Trashes
+
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Certificates
+*.pfx
+
+# Database files
+*.sqlite
+*.db
+
+# Secrets
+secrets.json
+credentials.json
+
