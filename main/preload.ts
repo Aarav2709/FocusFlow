@@ -51,12 +51,12 @@ import type {
   CreateDeckPayload,
   CreateNotePayload,
   CreateTaskPayload,
+  ID,
   RendererApi,
   StudySessionPayload,
   ToggleTaskPayload,
   UpdateCardPayload,
-  UpdateNotePayload,
-  UpdatePreferencePayload
+  UpdateNotePayload
 } from '@shared/types';
 
 // helper that only invokes ipcRenderer when the channel is available
@@ -70,22 +70,22 @@ const api: RendererApi = {
     list: () => safeInvoke(IPC_CHANNELS.NOTES_LIST, []),
     create: (payload: CreateNotePayload) => safeInvoke(IPC_CHANNELS.NOTES_CREATE, { id: Date.now(), ...payload }, payload),
   update: (payload: UpdateNotePayload) => safeInvoke(IPC_CHANNELS.NOTES_UPDATE, payload, payload),
-    remove: (id: number) => safeInvoke(IPC_CHANNELS.NOTES_DELETE, undefined, id)
+    remove: (id: ID) => safeInvoke(IPC_CHANNELS.NOTES_DELETE, undefined, id)
   },
   tasks: {
     list: () => safeInvoke(IPC_CHANNELS.TASKS_LIST, []),
     create: (payload: CreateTaskPayload) => safeInvoke(IPC_CHANNELS.TASKS_CREATE, { id: Date.now(), ...payload }, payload),
   toggle: (payload: ToggleTaskPayload) => safeInvoke(IPC_CHANNELS.TASKS_TOGGLE, payload, payload),
-    remove: (id: number) => safeInvoke(IPC_CHANNELS.TASKS_DELETE, undefined, id)
+    remove: (id: ID) => safeInvoke(IPC_CHANNELS.TASKS_DELETE, undefined, id)
   },
   flashcards: {
     listDecks: () => safeInvoke(IPC_CHANNELS.DECKS_LIST, []),
     createDeck: (payload: CreateDeckPayload) => safeInvoke(IPC_CHANNELS.DECKS_CREATE, { id: Date.now(), ...payload }, payload),
-    removeDeck: (id: number) => safeInvoke(IPC_CHANNELS.DECKS_DELETE, undefined, id),
-    listCards: (deckId: number) => safeInvoke(IPC_CHANNELS.CARDS_LIST, [] , deckId),
+    removeDeck: (id: ID) => safeInvoke(IPC_CHANNELS.DECKS_DELETE, undefined, id),
+    listCards: (deckId: ID) => safeInvoke(IPC_CHANNELS.CARDS_LIST, [] , deckId),
     createCard: (payload: CreateCardPayload) => safeInvoke(IPC_CHANNELS.CARDS_CREATE, { id: Date.now(), ...payload }, payload),
   updateCard: (payload: UpdateCardPayload) => safeInvoke(IPC_CHANNELS.CARDS_UPDATE, payload, payload),
-    removeCard: (id: number) => safeInvoke(IPC_CHANNELS.CARDS_DELETE, undefined, id)
+    removeCard: (id: ID) => safeInvoke(IPC_CHANNELS.CARDS_DELETE, undefined, id)
   },
   progress: {
     summary: () => safeInvoke(IPC_CHANNELS.PROGRESS_SUMMARY, null),
@@ -94,7 +94,7 @@ const api: RendererApi = {
   },
   preferences: {
     get: () => safeInvoke(IPC_CHANNELS.PREFERENCES_GET, null),
-    update: <T>(payload: UpdatePreferencePayload<T>) => safeInvoke(IPC_CHANNELS.PREFERENCES_UPDATE, null, payload)
+    update: <T>(payload: { key: string; value: T }) => safeInvoke(IPC_CHANNELS.PREFERENCES_UPDATE, null, payload)
   },
   window: {
     minimize: () => safeInvoke(IPC_CHANNELS.WINDOW_MINIMIZE, undefined),

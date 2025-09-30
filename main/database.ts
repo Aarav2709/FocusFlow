@@ -17,6 +17,7 @@ import type {
   ToggleTaskPayload,
   UpdateCardPayload,
   UpdateNotePayload
+  , ID
 } from '@shared/types';
 
 type Row = Record<string, unknown>;
@@ -148,10 +149,11 @@ export class DatabaseService {
     this.db.prepare('DELETE FROM notes WHERE id = ?').run(id);
   }
 
-  private getNote(id: number): Note {
-    const data = this.db.prepare('SELECT * FROM notes WHERE id = ?').get(id) as Row | undefined;
+  private getNote(id: ID): Note {
+    const nid = Number(id);
+    const data = this.db.prepare('SELECT * FROM notes WHERE id = ?').get(nid) as Row | undefined;
     if (!data) {
-      throw new Error(`Note with id ${id} not found`);
+      throw new Error(`Note with id ${nid} not found`);
     }
     return this.mapNote(data);
   }
@@ -201,10 +203,11 @@ export class DatabaseService {
     this.db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
   }
 
-  private getTask(id: number): Task {
-    const data = this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as Row | undefined;
+  private getTask(id: ID): Task {
+    const nid = Number(id);
+    const data = this.db.prepare('SELECT * FROM tasks WHERE id = ?').get(nid) as Row | undefined;
     if (!data) {
-      throw new Error(`Task with id ${id} not found`);
+      throw new Error(`Task with id ${nid} not found`);
     }
     return this.mapTask(data);
   }
@@ -304,10 +307,11 @@ export class DatabaseService {
     this.db.prepare('DELETE FROM cards WHERE id = ?').run(id);
   }
 
-  private getCard(id: number): Card {
-    const data = this.db.prepare('SELECT * FROM cards WHERE id = ?').get(id) as Row | undefined;
+  private getCard(id: ID): Card {
+    const nid = Number(id);
+    const data = this.db.prepare('SELECT * FROM cards WHERE id = ?').get(nid) as Row | undefined;
     if (!data) {
-      throw new Error(`Card with id ${id} not found`);
+      throw new Error(`Card with id ${nid} not found`);
     }
     return this.mapCard(data);
   }

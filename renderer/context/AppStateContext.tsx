@@ -16,6 +16,7 @@ import type {
   ToggleTaskPayload,
   UpdateCardPayload,
   UpdateNotePayload
+  , ID
 } from '@shared/types';
 
 interface AppStateContextValue {
@@ -31,20 +32,20 @@ interface AppStateContextValue {
   notesApi: {
     create: (payload: CreateNotePayload) => Promise<Note>;
     update: (payload: UpdateNotePayload) => Promise<Note>;
-    remove: (id: number) => Promise<void>;
+    remove: (id: ID) => Promise<void>;
   };
   tasksApi: {
     create: (payload: CreateTaskPayload) => Promise<Task>;
     toggle: (payload: ToggleTaskPayload) => Promise<Task>;
-    remove: (id: number) => Promise<void>;
+    remove: (id: ID) => Promise<void>;
   };
   flashcardsApi: {
     createDeck: (payload: CreateDeckPayload) => Promise<Deck>;
-    removeDeck: (id: number) => Promise<void>;
+    removeDeck: (id: ID) => Promise<void>;
     createCard: (payload: CreateCardPayload) => Promise<Card>;
     updateCard: (payload: UpdateCardPayload) => Promise<Card>;
-    removeCard: (id: number) => Promise<void>;
-    preloadCards: (deckId: number) => Promise<Card[]>;
+    removeCard: (id: ID) => Promise<void>;
+    preloadCards: (deckId: ID) => Promise<Card[]>;
   };
   logSession: (payload: StudySessionPayload) => Promise<void>;
   updatePreference: <T>(key: keyof AppPreferences | string, value: T) => Promise<AppPreferences>;
@@ -115,7 +116,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [cards, setCards] = useState<Record<number, Card[]>>({});
+  const [cards, setCards] = useState<Record<string, Card[]>>({});
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [preferences, setPreferences] = useState<AppPreferences | null>(null);
@@ -169,7 +170,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       setNotes((prev: Note[]) => prev.map((item: Note) => (item.id === note.id ? note : item)));
       return note;
     },
-    remove: async (id: number) => {
+    remove: async (id: ID) => {
       await api.notes.remove(id);
       setNotes((prev: Note[]) => prev.filter((item: Note) => item.id !== id));
     }
@@ -188,7 +189,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       void loadSummary();
       return task;
     },
-    remove: async (id: number) => {
+    remove: async (id: ID) => {
       await api.tasks.remove(id);
       setTasks((prev: Task[]) => prev.filter((item: Task) => item.id !== id));
       void loadSummary();
@@ -202,50 +203,53 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       void loadSummary();
       return deck;
     },
-    removeDeck: async (id: number) => {
+    removeDeck: async (id: ID) => {
       await api.flashcards.removeDeck(id);
       setDecks((prev: Deck[]) => prev.filter((deck) => deck.id !== id));
-      setCards((prev: Record<number, Card[]>) => {
-        const next: Record<number, Card[]> = { ...prev };
-        delete next[id];
+      setCards((prev: Record<string, Card[]>) => {
+        const next: Record<string, Card[]> = { ...prev };
+        delete next[String(id)];
         return next;
       });
       void loadSummary();
     },
     createCard: async (payload: CreateCardPayload) => {
       const card = await api.flashcards.createCard(payload);
-      setCards((prev: Record<number, Card[]>) => ({
+      const key = String(payload.deckId);
+      setCards((prev: Record<string, Card[]>) => ({
         ...prev,
-        [payload.deckId]: [card, ...(prev[payload.deckId] ?? [])]
+        [key]: [card, ...(prev[key] ?? [])]
       }));
       void loadSummary();
       return card;
     },
     updateCard: async (payload: UpdateCardPayload) => {
       const card = await api.flashcards.updateCard(payload);
-      setCards((prev: Record<number, Card[]>) => ({
+      const key = String(card.deckId);
+      setCards((prev: Record<string, Card[]>) => ({
         ...prev,
-        [card.deckId]: (prev[card.deckId] ?? []).map((item: Card) => (item.id === card.id ? card : item))
+        [key]: (prev[key] ?? []).map((item: Card) => (item.id === card.id ? card : item))
       }));
       return card;
     },
-    removeCard: async (id: number) => {
+    removeCard: async (id: ID) => {
       await api.flashcards.removeCard(id);
-      setCards((prev: Record<number, Card[]>) => {
-        const next: Record<number, Card[]> = {};
+      setCards((prev: Record<string, Card[]>) => {
+        const next: Record<string, Card[]> = {};
         Object.entries(prev).forEach(([deckId, items]) => {
-          next[Number(deckId)] = items.filter((card: Card) => card.id !== id);
+          next[deckId] = items.filter((card: Card) => card.id !== id);
         });
         return next;
       });
       void loadSummary();
     },
-    preloadCards: async (deckId: number) => {
-      if (cards[deckId]) {
-        return cards[deckId];
+    preloadCards: async (deckId: ID) => {
+      const key = String(deckId);
+      if (cards[key]) {
+        return cards[key];
       }
       const result = await api.flashcards.listCards(deckId);
-      setCards((prev: Record<number, Card[]>) => ({ ...prev, [deckId]: result }));
+      setCards((prev: Record<string, Card[]>) => ({ ...prev, [key]: result }));
       return result;
     }
   }), [api.flashcards, cards, loadSummary]);

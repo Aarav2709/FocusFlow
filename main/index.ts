@@ -3,7 +3,8 @@ import 'module-alias/register';
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
 import path from 'node:path';
 import { DatabaseService } from './database';
-import { registerIpcHandlers } from './ipc';
+import { registerIpcHandlers, registerStorageIpcHandlers } from './ipc';
+import { StorageService } from './storage';
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 let mainWindow: BrowserWindow | null = null;
@@ -62,8 +63,14 @@ const bootstrap = async (): Promise<void> => {
   });
 
   const dbPath = path.join(app.getPath('userData'), 'ypt-desktop.db');
-  database = new DatabaseService(dbPath);
-  registerIpcHandlers(database, () => mainWindow);
+  try {
+    database = new DatabaseService(dbPath);
+    registerIpcHandlers(database, () => mainWindow);
+  } catch (err) {
+    console.warn('DatabaseService failed to initialize, falling back to JSON storage:', err);
+    const storage = new StorageService(app.getPath('userData'));
+    registerStorageIpcHandlers(storage);
+  }
 
   await app.whenReady();
   await createWindow();

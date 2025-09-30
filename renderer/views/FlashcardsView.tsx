@@ -38,6 +38,12 @@ const emptyCard: CardFormState = { front: '', back: '' };
 
 const FlashcardsView = () => {
   const { decks, cards, flashcardsApi } = useAppState();
+
+  // Add a type assertion or define the type for cards to allow string indexing
+  // Example assumes cards is a mapping from deck id (string or number) to Flashcard[]
+  // If you control the context, update its type definition instead.
+  // Otherwise, use the following assertion:
+  const typedCards = cards as Record<string, Flashcard[]>;
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [deckDialogOpen, setDeckDialogOpen] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
@@ -53,8 +59,8 @@ const FlashcardsView = () => {
 
   useEffect(() => {
     const loadCards = async () => {
-      if (!selectedDeck) return;
-      if (cards[selectedDeck.id]) return;
+  if (!selectedDeck) return;
+  if ((cards as Record<string, Flashcard[]>)[String(selectedDeck.id)]) return;
       setLoadingCards(true);
       try {
         await flashcardsApi.preloadCards(selectedDeck.id);
@@ -62,15 +68,15 @@ const FlashcardsView = () => {
         setLoadingCards(false);
       }
     };
-    void loadCards();
-  }, [cards, flashcardsApi, selectedDeck]);
+    loadCards();
+  }, [selectedDeck, cards, flashcardsApi]);
 
   const deckCards = useMemo<Flashcard[]>(() => {
     if (!selectedDeck) {
       return [];
     }
-    return cards[selectedDeck.id] ?? [];
-  }, [cards, selectedDeck]);
+    return typedCards[String(selectedDeck.id)] ?? [];
+  }, [typedCards, selectedDeck]);
 
   const openDeckDialog = () => {
     setDeckForm(emptyDeck);
