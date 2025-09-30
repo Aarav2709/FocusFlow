@@ -1,3 +1,16 @@
+// ensure module-alias is registered in the preload process so @shared/* resolves in compiled preload.js
+// use a runtime require wrapped in try/catch to avoid bundlers (Vite) attempting to resolve this during renderer dev
+try {
+  // Only attempt to register in Electron runtime where module-alias will be available
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('module-alias/register');
+  }
+} catch (err) {
+  /* ignore — in dev the module may not be resolvable by the renderer bundler */
+}
+
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc';
 import type {
