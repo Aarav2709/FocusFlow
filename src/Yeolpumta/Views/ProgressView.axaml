@@ -6,7 +6,7 @@
     <TextBlock Text="This week"/>
     <TextBlock Text="{Binding TotalMinutesWeek}" FontSize="36"/>
     <TextBlock Text="Recent Sessions" FontWeight="SemiBold"/>
-    <ListBox Items="{Binding Recent}">
+  <ListBox ItemsSource="{Binding Recent}">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <StackPanel Orientation="Horizontal" Spacing="8">

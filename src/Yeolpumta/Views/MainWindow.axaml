@@ -1,20 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:Yeolpumta.ViewModels"
-        x:Class="Yeolpumta.Views.MainWindow"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:Yeolpumta.ViewModels"
+  x:Class="Yeolpumta.Views.MainWindow"
         Width="1000" Height="700" MinWidth="900" MinHeight="600"
         Title="Yeolpumta"
         TransparencyLevelHint="None"
         SystemDecorations="Full"
-        mc:Ignorable="d">
+  >
   <Grid ColumnDefinitions="220, *">
     <!-- Sidebar -->
-    <Border Background="{DynamicResource ThemeBackgroundBrush}"/>
-    <StackPanel Grid.Column="0" Spacing="8" Margin="12">
+  <Border Background="{DynamicResource ThemeBackgroundBrush}"/>
+  <StackPanel Grid.Column="0" Spacing="8" Margin="12">
       <TextBlock Text="Yeolpumta" FontSize="20" FontWeight="SemiBold" Margin="0,4,0,12"/>
-      <ItemsControl Items="{Binding Navigation}">
+  <ItemsControl ItemsSource="{Binding Navigation}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Button Content="{Binding Title}"
@@ -32,9 +30,9 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <StackPanel Margin="0,16,0,0">
+  <StackPanel Margin="0,16,0,0">
         <TextBlock Text="Upcoming" FontWeight="SemiBold"/>
-        <ItemsControl Items="{Binding TasksVM.Upcoming}">
+  <ItemsControl ItemsSource="{Binding TasksVM.Upcoming}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Spacing="6">

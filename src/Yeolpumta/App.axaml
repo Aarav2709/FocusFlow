@@ -1,37 +1,35 @@
 <Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:Yeolpumta.ViewModels"
-             xmlns:views="clr-namespace:Yeolpumta.Views"
-             x:Class="Yeolpumta.App">
-  <Application.Styles>
-    <FluentTheme Mode="Dark"/>
-    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-    <StyleInclude Source="avares://Avalonia/Styles/FluentTheme.xaml"/>
-    <Style>
-      <Style.Resources>
-        <Thickness x:Key="Spacing">8</Thickness>
-      </Style.Resources>
-    </Style>
-  </Application.Styles>
+						 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+						 xmlns:vm="using:Yeolpumta.ViewModels"
+						 xmlns:views="using:Yeolpumta.Views"
+						 x:Class="Yeolpumta.App">
+	<Application.Styles>
+	<!-- Fluent theme temporarily removed to avoid version-specific property mismatches. Re-add with correct API if needed. -->
+		<Style>
+			<Style.Resources>
+				<Thickness x:Key="Spacing">8</Thickness>
+			</Style.Resources>
+		</Style>
+	</Application.Styles>
 
-  <Application.DataTemplates>
-    <DataTemplate DataType="{x:Type vm:NotesViewModel}">
-      <views:NotesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:TasksViewModel}">
-      <views:TasksView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:FlashcardsViewModel}">
-      <views:FlashcardsView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:TimerViewModel}">
-      <views:TimerView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:ProgressViewModel}">
-      <views:ProgressView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-      <views:SettingsView/>
-    </DataTemplate>
-  </Application.DataTemplates>
+	<Application.DataTemplates>
+		<DataTemplate DataType="{x:Type vm:NotesViewModel}">
+			<views:NotesView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:TasksViewModel}">
+			<views:TasksView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:FlashcardsViewModel}">
+			<views:FlashcardsView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:TimerViewModel}">
+			<views:TimerView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:ProgressViewModel}">
+			<views:ProgressView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+			<views:SettingsView/>
+		</DataTemplate>
+	</Application.DataTemplates>
 </Application>

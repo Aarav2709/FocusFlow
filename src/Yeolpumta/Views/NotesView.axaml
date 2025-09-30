@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:md="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.Markdown"
+             xmlns:vm="using:Yeolpumta.ViewModels"
+             xmlns:md="clr-namespace:Markdown.Avalonia;assembly=Markdown.Avalonia"
              x:Class="Yeolpumta.Views.NotesView">
   <Grid ColumnDefinitions="300, *" RowDefinitions="Auto, *" ColumnSpacing="12" RowSpacing="8">
     <TextBlock Grid.ColumnSpan="2" Text="Notes" FontSize="18" FontWeight="SemiBold"/>
@@ -12,7 +13,7 @@
         <Button Content="Save" Command="{Binding SaveCommand}"/>
         <Button Content="Delete" Command="{Binding DeleteCommand}"/>
       </StackPanel>
-      <ListBox Items="{Binding Notes}" SelectedItem="{Binding SelectedNote}">
+  <ListBox ItemsSource="{Binding Notes}" SelectedItem="{Binding SelectedNote}">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel>

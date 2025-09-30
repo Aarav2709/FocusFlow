@@ -1,5 +1,5 @@
 using Avalonia;
-using Avalonia.Themes.Fluent;
+using Avalonia.Styling;
 
 namespace Yeolpumta.Services
 {
@@ -9,13 +9,7 @@ namespace Yeolpumta.Services
         {
             if (Application.Current is { } app)
             {
-                foreach (var style in app.Styles)
-                {
-                    if (style is FluentTheme ft)
-                    {
-                        ft.Mode = dark ? FluentThemeMode.Dark : FluentThemeMode.Light;
-                    }
-                }
+                app.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
             }
         }
     }

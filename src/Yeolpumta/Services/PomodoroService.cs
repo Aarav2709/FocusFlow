@@ -6,7 +6,7 @@ namespace Yeolpumta.Services
     public class PomodoroService
     {
         private readonly ProgressService _progress;
-        private Timer? _timer;
+    private System.Timers.Timer? _timer;
         private DateTime _sessionStart;
         private int _remainingSeconds;
 
@@ -37,7 +37,7 @@ namespace Yeolpumta.Services
             Stop();
             _remainingSeconds = minutes * 60;
             _sessionStart = DateTime.UtcNow;
-            _timer = new Timer(1000);
+            _timer = new System.Timers.Timer(1000);
             _timer.Elapsed += (s, e) =>
             {
                 _remainingSeconds--;

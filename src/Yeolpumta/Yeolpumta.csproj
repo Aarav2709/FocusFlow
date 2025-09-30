@@ -7,20 +7,19 @@
     <RootNamespace>Yeolpumta</RootNamespace>
     <AssemblyName>Yeolpumta</AssemblyName>
     <ApplicationIcon></ApplicationIcon>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.*" />
     <PackageReference Include="Avalonia.Desktop" Version="11.*" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
-    <PackageReference Include="Avalonia.Controls.Markdown" Version="11.*" />
+  <PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
+  <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.*" />
+  <PackageReference Include="Markdown.Avalonia.Tight" Version="11.*" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.*" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="**/*.axaml" />
-  </ItemGroup>
+  <!-- Let the Avalonia SDK automatically include .axaml files as Avalonia resources -->
 </Project>

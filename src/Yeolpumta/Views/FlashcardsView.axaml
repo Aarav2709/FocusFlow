@@ -3,7 +3,7 @@
              x:Class="Yeolpumta.Views.FlashcardsView">
   <Grid RowDefinitions="Auto, *" RowSpacing="8" ColumnDefinitions="*, 320" ColumnSpacing="12">
     <TextBlock Grid.ColumnSpan="2" Text="Flashcards" FontSize="18" FontWeight="SemiBold"/>
-    <ListBox Grid.Row="1" Items="{Binding Cards}" SelectedItem="{Binding Selected}">
+  <ListBox Grid.Row="1" ItemsSource="{Binding Cards}" SelectedItem="{Binding Selected}">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <StackPanel>
