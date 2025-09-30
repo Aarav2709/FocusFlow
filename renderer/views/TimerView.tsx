@@ -1,178 +1,209 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Divider,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography
-} from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Button, Card, CardContent, Divider, IconButton, Menu, MenuItem, Stack, TextField, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
-import ReplayIcon from '@mui/icons-material/Replay';
-import type { StudySessionPayload } from '@shared/types';
-import { useAppState } from '../context/AppStateContext';
+import MenuIcon from '@mui/icons-material/Menu';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { useNavigate } from 'react-router-dom';
 
-const formatTime = (totalSeconds: number) => {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
+type Subject = { id: string; name: string; color?: string };
 
-type Mode = StudySessionPayload['mode'];
+const STORAGE_KEY = 'ypt:subjects:v1';
 
-const TimerView = () => {
-  const { preferences, updatePreference, logSession } = useAppState();
-  const [mode, setMode] = useState<Mode>('focus');
-  const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [completedSessions, setCompletedSessions] = useState(0);
+function hhmmss(totalSeconds: number) {
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  return [hrs, mins, secs].map((n) => String(n).padStart(2, '0')).join(':');
+}
 
-  const durations = useMemo(() => {
-    const defaults = {
-      focus: 25,
-      shortBreak: 5,
-      longBreak: 15
-    };
-    const pref = preferences?.pomodoro ?? defaults;
-    return {
-      focus: pref.focus * 60,
-      shortBreak: pref.shortBreak * 60,
-      longBreak: pref.longBreak * 60
-    };
-  }, [preferences]);
+const TimerView: React.FC = () => {
+  const navigate = useNavigate();
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [{ id: '1', name: 'Maths', color: '#E53935' }, { id: '2', name: 'Science', color: '#1E88E5' }];
+      return JSON.parse(raw) as Subject[];
+    } catch {
+      return [{ id: '1', name: 'Maths', color: '#E53935' }, { id: '2', name: 'Science', color: '#1E88E5' }];
+    }
+  });
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>(() => ({}));
+  const [newSubject, setNewSubject] = useState('');
 
   useEffect(() => {
-    setTimeLeft(durations[mode] ?? 1500);
-    setIsRunning(false);
-  }, [mode, durations]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects));
+  }, [subjects]);
 
   useEffect(() => {
-    if (!isRunning) {
+    let t: number | undefined;
+    if (activeId) {
+      t = window.setInterval(() => {
+        setElapsedMap((m) => ({ ...m, [activeId]: (m[activeId] ?? 0) + 1 }));
+      }, 1000);
+    }
+    return () => { if (t) window.clearInterval(t); };
+  }, [activeId]);
+
+  const totalSeconds = useMemo(() => Object.values(elapsedMap).reduce((a, b) => a + b, 0), [elapsedMap]);
+
+  const startStop = useCallback((id: string) => {
+    if (activeId === id) {
+      // stop
+      setActiveId(null);
       return;
     }
-    const interval = window.setInterval(() => {
-  setTimeLeft((prev: number) => {
-        if (prev <= 1) {
-          void logSession({ mode, durationMinutes: Math.round((durations[mode] ?? 0) / 60) });
-          setCompletedSessions((count: number) => count + (mode === 'focus' ? 1 : 0));
-          setIsRunning(false);
-          return durations[mode] ?? 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, [isRunning, logSession, mode, durations]);
+    setActiveId(id);
+  }, [activeId]);
 
-  const handleStartPause = () => {
-  setIsRunning((prev: boolean) => !prev);
+  const addSubject = useCallback(() => {
+    if (!newSubject.trim()) return;
+    const s: Subject = { id: Date.now().toString(), name: newSubject.trim(), color: '#' + Math.floor(Math.random() * 16777215).toString(16) };
+    setSubjects((p) => [s, ...p]);
+    setNewSubject('');
+  }, [newSubject]);
+
+  const totalMinutes = Math.round(totalSeconds / 60);
+
+  // menu & edit state
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [menuSubject, setMenuSubject] = useState<Subject | null>(null);
+
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [editingName, setEditingName] = useState('');
+  const [editingColor, setEditingColor] = useState('');
+
+  const handleOpenMenu = (e: React.MouseEvent<HTMLElement>, s: Subject) => {
+    setMenuAnchor(e.currentTarget);
+    setMenuSubject(s);
+  };
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setMenuSubject(null);
   };
 
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeLeft(durations[mode] ?? 0);
+  const handleEditSubject = () => {
+    if (!menuSubject) return;
+    setEditingSubject(menuSubject);
+    setEditingName(menuSubject.name);
+    setEditingColor(menuSubject.color ?? '');
+    handleCloseMenu();
   };
 
-  const handleModeChange = (_: unknown, value: Mode | null) => {
-    if (!value) return;
-    setMode(value);
-  };
-
-  const incrementPreference = async (key: 'focus' | 'shortBreak' | 'longBreak', delta: number) => {
-    const current = preferences?.pomodoro[key] ?? (key === 'focus' ? 25 : key === 'shortBreak' ? 5 : 15);
-    const next = Math.max(1, current + delta);
-    await updatePreference('pomodoro', {
-      ...preferences?.pomodoro,
-      focus: preferences?.pomodoro.focus ?? 25,
-      shortBreak: preferences?.pomodoro.shortBreak ?? 5,
-      longBreak: preferences?.pomodoro.longBreak ?? 15,
-      [key]: next
+  const handleDeleteSubject = () => {
+    if (!menuSubject) return;
+    setSubjects((p) => p.filter((x) => x.id !== menuSubject.id));
+    setElapsedMap((m) => {
+      const copy = { ...m } as Record<string, number>;
+      delete copy[menuSubject.id];
+      return copy;
     });
+    if (activeId === menuSubject.id) setActiveId(null);
+    handleCloseMenu();
+  };
+
+  const cancelEdit = () => setEditingSubject(null);
+  const confirmEdit = () => {
+    if (!editingSubject) return;
+    setSubjects((p) => p.map((s) => s.id === editingSubject.id ? { ...s, name: editingName, color: editingColor || s.color } : s));
+    setEditingSubject(null);
   };
 
   return (
-    <Stack spacing={4} alignItems="stretch" sx={{ height: '100%' }}>
+    <>
+    <Stack spacing={2} sx={{ p: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography variant="h4" fontWeight={700} gutterBottom>
-            Pomodoro Timer
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Stay focused with guided intervals and automatic session logging.
-          </Typography>
-        </Box>
-        <Chip label={`${completedSessions} focus sessions`} color="primary" variant="outlined" />
+        <IconButton onClick={() => navigate('/settings')} sx={{ color: '#fff' }}>
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6">{new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' })}</Typography>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <AccessTimeIcon />
+          <Typography variant="body2">D-0</Typography>
+        </Stack>
       </Stack>
 
       <Card sx={{ borderRadius: 4 }}>
-        <CardContent>
-          <Stack spacing={4} alignItems="center">
-            <ToggleButtonGroup value={mode} exclusive onChange={handleModeChange} color="primary">
-              <ToggleButton value="focus">Focus</ToggleButton>
-              <ToggleButton value="shortBreak">Short Break</ToggleButton>
-              <ToggleButton value="longBreak">Long Break</ToggleButton>
-            </ToggleButtonGroup>
-
-            <Typography variant="h2" fontWeight={700} sx={{ fontVariantNumeric: 'tabular-nums' }}>
-              {formatTime(timeLeft)}
-            </Typography>
-
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={isRunning ? <PauseIcon /> : <PlayArrowIcon />}
-                onClick={handleStartPause}
-              >
-                {isRunning ? 'Pause' : 'Start'}
-              </Button>
-              <Button variant="outlined" size="large" startIcon={<ReplayIcon />} onClick={handleReset}>
-                Reset
-              </Button>
-            </Stack>
-          </Stack>
+        <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+          <Typography variant="h1" sx={{ fontVariantNumeric: 'tabular-nums' }}>{hhmmss(totalSeconds)}</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }} color="text.secondary">{activeId ? `Focusing on ${subjects.find(s => s.id === activeId)?.name ?? ''}` : 'Idle'}</Typography>
         </CardContent>
       </Card>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
-
-      <Card sx={{ borderRadius: 4 }}>
-        <CardContent>
-          <Stack spacing={3}>
-            <Typography variant="h6" fontWeight={600}>
-              Session Lengths
-            </Typography>
-            <Stack spacing={2}>
-              {(['focus', 'shortBreak', 'longBreak'] as const).map((key) => (
-                <Stack key={key} direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={600} textTransform="capitalize">
-                      {key === 'shortBreak' ? 'Short Break' : key === 'longBreak' ? 'Long Break' : 'Focus'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {preferences?.pomodoro[key] ?? (key === 'focus' ? 25 : key === 'shortBreak' ? 5 : 15)} minutes
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={1}>
-                    <Button size="small" variant="outlined" onClick={() => incrementPreference(key, -1)}>
-                      - 1
-                    </Button>
-                    <Button size="small" variant="outlined" onClick={() => incrementPreference(key, 1)}>
-                      + 1
-                    </Button>
-                  </Stack>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>Subjects</Typography>
+          <Stack spacing={1}>
+            {subjects.map((s) => (
+              <Stack key={s.id} direction="row" alignItems="center" justifyContent="space-between" sx={{ bgcolor: 'transparent', p: 1 }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography>{s.name}</Typography>
                 </Stack>
-              ))}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Button onClick={() => startStop(s.id)} startIcon={<PlayArrowIcon />} variant={activeId === s.id ? 'contained' : 'outlined'} sx={{ bgcolor: activeId === s.id ? s.color : undefined }}>
+                    {activeId === s.id ? <PauseIcon /> : <PlayArrowIcon />}
+                  </Button>
+                  <IconButton size="small" onClick={(e) => handleOpenMenu(e, s)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>
+                  </IconButton>
+                </Stack>
+              </Stack>
+            ))}
+            <Stack direction="row" spacing={1}>
+              <TextField size="small" placeholder="Add subject" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} sx={{ flex: 1 }} />
+              <Button onClick={addSubject}>Add</Button>
             </Stack>
           </Stack>
-        </CardContent>
-      </Card>
+        </Box>
+
+        <Box sx={{ width: 280 }}>
+          <Typography variant="subtitle1">Insights</Typography>
+          <Divider sx={{ my: 1 }} />
+          <Typography variant="body2">Total time: {totalMinutes} min</Typography>
+          <Typography variant="body2">Daily avg: {Math.round(totalMinutes / 7)} min</Typography>
+          <Divider sx={{ my: 1 }} />
+          <Stack spacing={1}>
+            {subjects.map((s) => {
+              const mins = Math.round((elapsedMap[s.id] ?? 0) / 60);
+              const pct = totalMinutes > 0 ? Math.round((mins / totalMinutes) * 100) : 0;
+              return (
+                <Box key={s.id}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="body2">{s.name}</Typography>
+                    <Typography variant="body2">{mins}m</Typography>
+                  </Stack>
+                  <Box sx={{ height: 8, bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 1, mt: 0.5 }}>
+                    <Box sx={{ width: `${pct}%`, height: '100%', bgcolor: s.color ?? '#999', borderRadius: 1 }} />
+                  </Box>
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
+      </Stack>
     </Stack>
+
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
+        <MenuItem onClick={handleEditSubject}>Edit</MenuItem>
+        <MenuItem onClick={handleDeleteSubject}>Delete</MenuItem>
+      </Menu>
+
+      <Dialog open={Boolean(editingSubject)} onClose={cancelEdit} maxWidth="xs" fullWidth>
+        <DialogTitle>Edit subject</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField label="Name" value={editingName} onChange={(e) => setEditingName(e.target.value)} />
+            <TextField label="Color (hex)" value={editingColor} onChange={(e) => setEditingColor(e.target.value)} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelEdit}>Cancel</Button>
+          <Button onClick={confirmEdit} variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
