@@ -1,9 +1,0 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Yeolpumta.Views.SettingsView">
-  <StackPanel Spacing="8">
-    <TextBlock Text="Settings" FontSize="18" FontWeight="SemiBold"/>
-    <CheckBox Content="Dark Mode" IsChecked="{Binding DarkMode}"/>
-    <TextBlock Text="Preferences are stored locally in a SQLite database." Opacity="0.7"/>
-  </StackPanel>
-</UserControl>
