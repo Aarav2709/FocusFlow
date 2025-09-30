@@ -52,7 +52,62 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
-const useApi = () => window.ypt;
+// Hook that returns the native API when available, otherwise a safe fallback
+const useApi = () => {
+  // read the runtime global
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const runtimeApi = (typeof window !== 'undefined' ? (window as any).ypt : undefined) as any | undefined;
+
+  return useMemo(() => {
+    if (runtimeApi) return runtimeApi;
+
+    // fallback implementations return safe defaults so the renderer can run without the preload
+    const noopEmpty = async () => [];
+    const noopNull = async () => null;
+    const noopVoid = async () => {};
+    const noopFalse = async () => false;
+    const createDummy = async (payload: any) => ({ id: Date.now(), ...payload } as any);
+
+    return {
+      notes: {
+        list: noopEmpty,
+        create: createDummy,
+        update: createDummy,
+        remove: noopVoid
+      },
+      tasks: {
+        list: noopEmpty,
+        create: createDummy,
+        toggle: createDummy,
+        remove: noopVoid
+      },
+      flashcards: {
+        listDecks: noopEmpty,
+        createDeck: createDummy,
+        removeDeck: noopVoid,
+        listCards: noopEmpty,
+        createCard: createDummy,
+        updateCard: createDummy,
+        removeCard: noopVoid
+      },
+      progress: {
+        summary: noopNull,
+        sessions: noopEmpty,
+        logSession: noopVoid
+      },
+      preferences: {
+        get: noopNull,
+        update: async () => null
+      },
+      window: {
+        minimize: noopVoid,
+        maximize: noopVoid,
+        close: noopVoid,
+        isMaximized: noopFalse
+      }
+    } as any;
+  }, [runtimeApi]);
+};
 
 export const AppStateProvider = ({ children }: { children: ReactNode }) => {
   const api = useApi();

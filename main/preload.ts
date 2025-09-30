@@ -12,7 +12,27 @@ try {
 }
 
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS } from '@shared/ipc';
+import path from 'node:path';
+
+// Load IPC_CHANNELS at runtime. During Vite dev the renderer sandbox may attempt to
+// evaluate the preload bundle and fail to resolve the '@shared' alias. In that case
+// fall back to loading the compiled file in dist/shared/ipc.js directly.
+let IPC_CHANNELS: any = {};
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  IPC_CHANNELS = require('@shared/ipc').IPC_CHANNELS;
+} catch (e) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    IPC_CHANNELS = require(path.join(__dirname, '..', 'shared', 'ipc.js')).IPC_CHANNELS;
+  } catch (err) {
+    // If this fails, expose an empty object so the renderer can still start in a degraded
+    // mode and we can show a helpful error instead of a crash.
+    // eslint-disable-next-line no-console
+    console.error('[preload] Failed to load IPC channels from @shared or dist/shared:', err);
+    IPC_CHANNELS = {};
+  }
+}
 import type {
   CreateCardPayload,
   CreateDeckPayload,
@@ -67,3 +87,12 @@ const api: RendererApi = {
 };
 
 contextBridge.exposeInMainWorld('ypt', api);
+// Debug-only: indicate preload executed when running inside Electron
+try {
+  if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+    // eslint-disable-next-line no-console
+    console.log('[preload] preload loaded — IPC channels available:', Object.keys(IPC_CHANNELS || {}));
+  }
+} catch (err) {
+  // ignore
+}
