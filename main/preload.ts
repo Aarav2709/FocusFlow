@@ -12,26 +12,39 @@ try {
 }
 
 import { contextBridge, ipcRenderer } from 'electron';
-import path from 'node:path';
+// don't import 'node:path' at module-eval time because Vite's sandbox may try to resolve
+// node: imports and fail. Require it at runtime only when we're inside Electron.
 
 // Load IPC_CHANNELS at runtime. During Vite dev the renderer sandbox may attempt to
 // evaluate the preload bundle and fail to resolve the '@shared' alias. In that case
 // fall back to loading the compiled file in dist/shared/ipc.js directly.
 let IPC_CHANNELS: any = {};
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  IPC_CHANNELS = require('@shared/ipc').IPC_CHANNELS;
-} catch (e) {
+// Only try to load the shared IPC constants when running inside Electron.
+// The preload bundle may be evaluated by Vite in a sandboxed environment that
+// doesn't have Node's require; guard to avoid module-not-found errors.
+if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    IPC_CHANNELS = require(path.join(__dirname, '..', 'shared', 'ipc.js')).IPC_CHANNELS;
-  } catch (err) {
-    // If this fails, expose an empty object so the renderer can still start in a degraded
-    // mode and we can show a helpful error instead of a crash.
-    // eslint-disable-next-line no-console
-    console.error('[preload] Failed to load IPC channels from @shared or dist/shared:', err);
-    IPC_CHANNELS = {};
+    IPC_CHANNELS = require('@shared/ipc').IPC_CHANNELS;
+  } catch (e) {
+    try {
+      // Only attempt a filesystem fallback when __dirname is defined (Node/Electron runtime).
+      if (typeof __dirname !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        IPC_CHANNELS = require(__dirname + '/../shared/ipc.js').IPC_CHANNELS;
+      } else {
+        throw new Error('__dirname is not defined in this evaluation environment');
+      }
+    } catch (err) {
+      // If this fails while evaluating in a bundler sandbox, silence the noisy stack
+      // and fall back to degraded mode; a one-time console.warn is emitted below
+      // to indicate degraded mode.
+      IPC_CHANNELS = {};
+    }
   }
+} else {
+  // Not running in Electron; don't attempt Node requires here.
+  IPC_CHANNELS = {};
 }
 import type {
   CreateCardPayload,
@@ -46,43 +59,48 @@ import type {
   UpdatePreferencePayload
 } from '@shared/types';
 
+// helper that only invokes ipcRenderer when the channel is available
+const safeInvoke = (channel: string | undefined, fallback: any, ...args: any[]) => {
+  if (channel) return ipcRenderer.invoke(channel, ...args);
+  return Promise.resolve(fallback);
+};
+
 const api: RendererApi = {
   notes: {
-    list: () => ipcRenderer.invoke(IPC_CHANNELS.NOTES_LIST),
-    create: (payload: CreateNotePayload) => ipcRenderer.invoke(IPC_CHANNELS.NOTES_CREATE, payload),
-    update: (payload: UpdateNotePayload) => ipcRenderer.invoke(IPC_CHANNELS.NOTES_UPDATE, payload),
-    remove: (id: number) => ipcRenderer.invoke(IPC_CHANNELS.NOTES_DELETE, id)
+    list: () => safeInvoke(IPC_CHANNELS.NOTES_LIST, []),
+    create: (payload: CreateNotePayload) => safeInvoke(IPC_CHANNELS.NOTES_CREATE, { id: Date.now(), ...payload }, payload),
+  update: (payload: UpdateNotePayload) => safeInvoke(IPC_CHANNELS.NOTES_UPDATE, payload, payload),
+    remove: (id: number) => safeInvoke(IPC_CHANNELS.NOTES_DELETE, undefined, id)
   },
   tasks: {
-    list: () => ipcRenderer.invoke(IPC_CHANNELS.TASKS_LIST),
-    create: (payload: CreateTaskPayload) => ipcRenderer.invoke(IPC_CHANNELS.TASKS_CREATE, payload),
-    toggle: (payload: ToggleTaskPayload) => ipcRenderer.invoke(IPC_CHANNELS.TASKS_TOGGLE, payload),
-    remove: (id: number) => ipcRenderer.invoke(IPC_CHANNELS.TASKS_DELETE, id)
+    list: () => safeInvoke(IPC_CHANNELS.TASKS_LIST, []),
+    create: (payload: CreateTaskPayload) => safeInvoke(IPC_CHANNELS.TASKS_CREATE, { id: Date.now(), ...payload }, payload),
+  toggle: (payload: ToggleTaskPayload) => safeInvoke(IPC_CHANNELS.TASKS_TOGGLE, payload, payload),
+    remove: (id: number) => safeInvoke(IPC_CHANNELS.TASKS_DELETE, undefined, id)
   },
   flashcards: {
-    listDecks: () => ipcRenderer.invoke(IPC_CHANNELS.DECKS_LIST),
-    createDeck: (payload: CreateDeckPayload) => ipcRenderer.invoke(IPC_CHANNELS.DECKS_CREATE, payload),
-    removeDeck: (id: number) => ipcRenderer.invoke(IPC_CHANNELS.DECKS_DELETE, id),
-    listCards: (deckId: number) => ipcRenderer.invoke(IPC_CHANNELS.CARDS_LIST, deckId),
-    createCard: (payload: CreateCardPayload) => ipcRenderer.invoke(IPC_CHANNELS.CARDS_CREATE, payload),
-    updateCard: (payload: UpdateCardPayload) => ipcRenderer.invoke(IPC_CHANNELS.CARDS_UPDATE, payload),
-    removeCard: (id: number) => ipcRenderer.invoke(IPC_CHANNELS.CARDS_DELETE, id)
+    listDecks: () => safeInvoke(IPC_CHANNELS.DECKS_LIST, []),
+    createDeck: (payload: CreateDeckPayload) => safeInvoke(IPC_CHANNELS.DECKS_CREATE, { id: Date.now(), ...payload }, payload),
+    removeDeck: (id: number) => safeInvoke(IPC_CHANNELS.DECKS_DELETE, undefined, id),
+    listCards: (deckId: number) => safeInvoke(IPC_CHANNELS.CARDS_LIST, [] , deckId),
+    createCard: (payload: CreateCardPayload) => safeInvoke(IPC_CHANNELS.CARDS_CREATE, { id: Date.now(), ...payload }, payload),
+  updateCard: (payload: UpdateCardPayload) => safeInvoke(IPC_CHANNELS.CARDS_UPDATE, payload, payload),
+    removeCard: (id: number) => safeInvoke(IPC_CHANNELS.CARDS_DELETE, undefined, id)
   },
   progress: {
-    summary: () => ipcRenderer.invoke(IPC_CHANNELS.PROGRESS_SUMMARY),
-    sessions: () => ipcRenderer.invoke(IPC_CHANNELS.PROGRESS_SESSIONS),
-    logSession: (payload: StudySessionPayload) => ipcRenderer.invoke(IPC_CHANNELS.PROGRESS_LOG, payload)
+    summary: () => safeInvoke(IPC_CHANNELS.PROGRESS_SUMMARY, null),
+    sessions: () => safeInvoke(IPC_CHANNELS.PROGRESS_SESSIONS, []),
+    logSession: (payload: StudySessionPayload) => safeInvoke(IPC_CHANNELS.PROGRESS_LOG, undefined, payload)
   },
   preferences: {
-    get: () => ipcRenderer.invoke(IPC_CHANNELS.PREFERENCES_GET),
-    update: <T>(payload: UpdatePreferencePayload<T>) =>
-      ipcRenderer.invoke(IPC_CHANNELS.PREFERENCES_UPDATE, payload)
+    get: () => safeInvoke(IPC_CHANNELS.PREFERENCES_GET, null),
+    update: <T>(payload: UpdatePreferencePayload<T>) => safeInvoke(IPC_CHANNELS.PREFERENCES_UPDATE, null, payload)
   },
   window: {
-    minimize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
-    maximize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
-    close: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
-    isMaximized: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_IS_MAXIMIZED)
+    minimize: () => safeInvoke(IPC_CHANNELS.WINDOW_MINIMIZE, undefined),
+    maximize: () => safeInvoke(IPC_CHANNELS.WINDOW_MAXIMIZE, undefined),
+    close: () => safeInvoke(IPC_CHANNELS.WINDOW_CLOSE, undefined),
+    isMaximized: () => safeInvoke(IPC_CHANNELS.WINDOW_IS_MAXIMIZED, false)
   }
 };
 
@@ -92,6 +110,18 @@ try {
   if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
     // eslint-disable-next-line no-console
     console.log('[preload] preload loaded — IPC channels available:', Object.keys(IPC_CHANNELS || {}));
+  }
+} catch (err) {
+  // ignore
+}
+
+// One-time developer-visible warning when running without IPC channels in Electron.
+try {
+  if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+    if (!IPC_CHANNELS || Object.keys(IPC_CHANNELS).length === 0) {
+      // eslint-disable-next-line no-console
+      console.warn('[preload] Running in degraded mode: IPC channels not available — native features will be mocked.');
+    }
   }
 } catch (err) {
   // ignore

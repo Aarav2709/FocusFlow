@@ -9,8 +9,13 @@ const TitleBar = () => {
   const [isMaximized, setIsMaximized] = useState(false);
 
   const syncMaximizedState = useCallback(async () => {
-    const result = await window.ypt.window.isMaximized();
-    setIsMaximized(result);
+    try {
+      const result = await (window.ypt?.window?.isMaximized?.() ?? Promise.resolve(false));
+      setIsMaximized(result);
+    } catch (err) {
+      // ignore when API is not available in fallback mode
+      setIsMaximized(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -22,16 +27,16 @@ const TitleBar = () => {
   }, [syncMaximizedState]);
 
   const handleMinimize = () => {
-    void window.ypt.window.minimize();
+    void (window.ypt?.window?.minimize?.() ?? Promise.resolve());
   };
 
   const handleMaximize = () => {
-    void window.ypt.window.maximize();
+    void (window.ypt?.window?.maximize?.() ?? Promise.resolve());
     void syncMaximizedState();
   };
 
   const handleClose = () => {
-    void window.ypt.window.close();
+    void (window.ypt?.window?.close?.() ?? Promise.resolve());
   };
 
   return (
