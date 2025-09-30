@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Yeolpumta")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de024471593a2c159ecc1b3c3f0c6e87e425971d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+87989097b54bfd4c27cbe5b4463d8af31bc2a2b2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Yeolpumta")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Yeolpumta")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
