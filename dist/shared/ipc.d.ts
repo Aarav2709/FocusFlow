@@ -1,0 +1,27 @@
+export declare const IPC_CHANNELS: {
+    readonly NOTES_LIST: "ypt:notes:list";
+    readonly NOTES_CREATE: "ypt:notes:create";
+    readonly NOTES_UPDATE: "ypt:notes:update";
+    readonly NOTES_DELETE: "ypt:notes:delete";
+    readonly TASKS_LIST: "ypt:tasks:list";
+    readonly TASKS_CREATE: "ypt:tasks:create";
+    readonly TASKS_TOGGLE: "ypt:tasks:toggle";
+    readonly TASKS_DELETE: "ypt:tasks:delete";
+    readonly DECKS_LIST: "ypt:decks:list";
+    readonly DECKS_CREATE: "ypt:decks:create";
+    readonly DECKS_DELETE: "ypt:decks:delete";
+    readonly CARDS_LIST: "ypt:cards:list";
+    readonly CARDS_CREATE: "ypt:cards:create";
+    readonly CARDS_UPDATE: "ypt:cards:update";
+    readonly CARDS_DELETE: "ypt:cards:delete";
+    readonly PROGRESS_SUMMARY: "ypt:progress:summary";
+    readonly PROGRESS_SESSIONS: "ypt:progress:sessions";
+    readonly PROGRESS_LOG: "ypt:progress:log";
+    readonly PREFERENCES_GET: "ypt:prefs:get";
+    readonly PREFERENCES_UPDATE: "ypt:prefs:update";
+    readonly WINDOW_MINIMIZE: "ypt:window:minimize";
+    readonly WINDOW_MAXIMIZE: "ypt:window:maximize";
+    readonly WINDOW_CLOSE: "ypt:window:close";
+    readonly WINDOW_IS_MAXIMIZED: "ypt:window:is-maximized";
+};
+export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];

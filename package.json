@@ -1,67 +1,77 @@
 {
-  "name": "yeolpumta-pc",
-  "version": "0.1.0",
-  "description": "Cross-platform desktop study app for Yeolpumta built with Electron, React, and TypeScript.",
+  "name": "yeolpumta-desktop",
+  "version": "1.0.0",
+  "description": "Desktop version of the Yeolpumta study companion built with Electron, React, and Material-UI.",
   "author": "Aarav2709",
   "license": "MIT",
-  "type": "module",
-  "main": "dist-electron/main.js",
+  "type": "commonjs",
+  "main": "dist/main/index.js",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:electron\"",
     "dev:renderer": "vite",
-    "dev:main": "tsc -p electron/tsconfig.json --watch --preserveWatchOutput",
-    "dev:electron": "wait-on dist-electron/main.js tcp:5173 && electron .",
-    "build": "vite build && tsc -p electron/tsconfig.json",
-    "lint": "tsc --noEmit",
+    "dev:main": "tsc -p main/tsconfig.json --watch --preserveWatchOutput",
+  "dev:electron": "cross-env ELECTRON_IS_DEV=1 wait-on dist/main/index.js dist/main/preload.js tcp:5173 && electron .",
+    "build": "npm run build:renderer && npm run build:main",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p main/tsconfig.json",
+    "lint": "eslint \"**/*.{ts,tsx,cjs}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "package": "npm run build && electron-builder",
     "preview": "vite preview --host"
   },
   "dependencies": {
-    "@chakra-ui/icons": "^2.1.1",
-    "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.0",
-    "better-sqlite3": "^9.0.0",
+    "@emotion/react": "^11.13.1",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.3",
+    "@mui/lab": "^6.0.0-beta.19",
+    "@mui/material": "^6.1.3",
+    "@tanstack/react-query": "^5.56.2",
+    "better-sqlite3": "^11.3.0",
+    "date-fns": "^3.6.0",
     "electron-store": "^10.0.0",
-    "framer-motion": "^11.0.0",
+    "notistack": "^3.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.1",
-    "zustand": "^4.5.2"
+    "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.8",
-    "@types/node": "^22.5.4",
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/node": "^22.7.4",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.2",
-    "@vitejs/plugin-react": "^4.3.1",
-    "concurrently": "^8.2.2",
-    "electron": "^31.3.0",
-    "electron-builder": "^24.13.3",
-    "typescript": "^5.5.4",
-    "vite": "^5.4.6",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.0.1",
+  "electron": "^30.2.0",
+    "electron-builder": "^25.0.5",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.35.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+  "cross-env": "^7.0.3",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.7",
     "wait-on": "^7.2.0"
   },
   "build": {
     "appId": "com.yeolpumta.desktop",
     "productName": "Yeolpumta",
     "files": [
-      "dist-electron/**/*",
-      "dist/**/*",
+      "dist/main/**/*",
+      "dist/renderer/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "directories": {
       "output": "release"
     },
-    "extraResources": [
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": ["**/*"]
-      }
-    ],
+    "extraMetadata": {
+      "main": "dist/main/index.js"
+    },
     "mac": {
-      "target": ["dmg"],
       "category": "public.app-category.education"
     },
     "win": {

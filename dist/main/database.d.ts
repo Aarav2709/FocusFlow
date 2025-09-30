@@ -1,0 +1,36 @@
+import type { AppPreferences, Card, CreateCardPayload, CreateDeckPayload, CreateNotePayload, CreateTaskPayload, Deck, Note, ProgressSummary, StudySession, StudySessionPayload, Task, ToggleTaskPayload, UpdateCardPayload, UpdateNotePayload } from '@shared/types';
+export declare class DatabaseService {
+    private readonly basePath;
+    private readonly db;
+    constructor(basePath: string);
+    private migrate;
+    listNotes(): Note[];
+    createNote(payload: CreateNotePayload): Note;
+    updateNote(payload: UpdateNotePayload): Note;
+    deleteNote(id: number): void;
+    private getNote;
+    private mapNote;
+    listTasks(): Task[];
+    createTask(payload: CreateTaskPayload): Task;
+    toggleTask(payload: ToggleTaskPayload): Task;
+    deleteTask(id: number): void;
+    private getTask;
+    private mapTask;
+    listDecks(): Deck[];
+    createDeck(payload: CreateDeckPayload): Deck;
+    deleteDeck(id: number): void;
+    private getDeck;
+    private mapDeck;
+    listCards(deckId: number): Card[];
+    createCard(payload: CreateCardPayload): Card;
+    updateCard(payload: UpdateCardPayload): Card;
+    deleteCard(id: number): void;
+    private getCard;
+    private mapCard;
+    logStudySession(payload: StudySessionPayload): void;
+    listSessions(): StudySession[];
+    summary(): ProgressSummary;
+    getPreferences(): AppPreferences;
+    updatePreference<T>(key: string, value: T): AppPreferences;
+    private setPreferences;
+}

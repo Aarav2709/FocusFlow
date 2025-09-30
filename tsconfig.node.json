@@ -1,15 +1,13 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true
-  },
-  "include": [
-    "vite.config.ts",
-    "electron/**/*.ts",
-    "electron/**/*.d.ts"
-  ]
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
 }
