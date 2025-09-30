@@ -2,12 +2,16 @@
   "extends": "../tsconfig.node.json",
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
     "module": "commonjs",
     "target": "ES2022",
-    "declaration": true,
-    "emitDeclarationOnly": true,
     "outDir": "../dist/shared",
-    "rootDir": "."
+    "rootDir": ".",
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*.ts"],
+  "references": []
 }

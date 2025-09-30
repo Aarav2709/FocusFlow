@@ -1,1 +1,30 @@
-node_modules
+## Node
+node_modules/
+package-lock.json
+yarn.lock
+
+## Build output
+dist/
+release/
+
+## Environment
+.env
+.env.local
+.env.*.local
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## IDE
+.vscode/
+*.code-workspace
+
+## Electron / native build artifacts
+*.gz
+*.tmp
+
+## better-sqlite3 build files
+build/
+*.node
+

@@ -1,3 +1,5 @@
+// register tsconfig path aliases at runtime so compiled Electron main process can resolve @shared/* imports
+import 'tsconfig-paths/register';
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
 import path from 'node:path';
 import { DatabaseService } from './database';
