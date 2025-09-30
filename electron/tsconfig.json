@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.node.json",
+  "compilerOptions": {
+    "outDir": "../dist-electron",
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2021",
+    "lib": ["ES2021"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "types": ["node"],
+    "declaration": false
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["../src"]
+}
