@@ -158,17 +158,18 @@ const TimerPanel: React.FC = () => {
   });
 
   return (
-  <Stack spacing={2}>
+    <Stack spacing={1}>
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         sx={{
           position: 'sticky',
-          top: 56,
+          top: 44,
           zIndex: (theme) => theme.zIndex.appBar - 1,
-          py: 1,
-          bgcolor: 'background.default'
+          py: 0.25,
+          bgcolor: 'background.default',
+          mb: 0.5
         }}
       >
         <IconButton sx={{ color: 'text.secondary' }}>
@@ -185,10 +186,10 @@ const TimerPanel: React.FC = () => {
         </Stack>
       </Stack>
 
-      <Card>
-        <CardContent>
-          <Stack spacing={1} alignItems="center">
-            <Typography variant="h2" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+      <Card sx={{ mt: 0 }}>
+        <CardContent sx={{ py: 1.5, px: 2 }}>
+          <Stack spacing={0.5} alignItems="center">
+            <Typography variant="h2" sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 36, sm: 48, md: 56 } }}>
               {primaryTime}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -218,12 +219,12 @@ const TimerPanel: React.FC = () => {
       </Card>
 
       <Card>
-        <CardContent>
-          <Stack spacing={1.5}>
+        <CardContent sx={{ p: 2 }}>
+          <Stack spacing={1}>
             <Typography variant="h6" fontWeight={600}>
               Subjects
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={0.75}>
               <TextField
                 fullWidth
                 placeholder="New subject"
@@ -236,7 +237,7 @@ const TimerPanel: React.FC = () => {
               </Button>
             </Stack>
 
-            <Stack spacing={1.25}>
+            <Stack spacing={1}>
               {subjects.map((subject) => (
                 <React.Fragment key={subject.id}>
                   <Box

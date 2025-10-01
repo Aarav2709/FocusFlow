@@ -6,14 +6,14 @@ import BottomNav from './components/BottomNav';
 import OnboardingScreen from './components/OnboardingScreen';
 import HomePage from './pages/HomePage';
 import StatsPage from './pages/StatsPage';
-import SettingsPage from './pages/SettingsPage';
+import ProfilePage from './pages/ProfilePage';
 import { useAppState } from './context/AppStateContext';
 import { useProfile } from './context/ProfileContext';
 
 const routes = [
   { path: '/home', label: 'Home' },
   { path: '/stats', label: 'Stats' },
-  { path: '/settings', label: 'Settings' }
+  { path: '/profile', label: 'Profile' }
 ] as const;
 
 const App = () => {
@@ -43,11 +43,11 @@ const App = () => {
   return (
     <Stack direction="column" sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <TitleBar />
-      <Box component="main" sx={{ flex: 1, px: 4, pt: 2, pb: 4, overflow: 'auto' }}>
+      <Box component="main" sx={{ flex: 1, px: 4, pt: 1, pb: 4, overflow: 'auto' }}>
         <Routes>
           <Route path="/home" element={<HomePage />} />
           <Route path="/stats" element={<StatsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </Box>

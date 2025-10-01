@@ -179,7 +179,7 @@ const TimerView: React.FC = () => {
     <>
     <Stack spacing={2} sx={{ p: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <IconButton onClick={() => navigate('/settings')} sx={{ color: '#fff' }}>
+  <IconButton onClick={() => navigate('/profile')} sx={{ color: '#fff' }}>
           <MenuIcon />
         </IconButton>
         <Typography variant="h6">{new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' })}</Typography>
