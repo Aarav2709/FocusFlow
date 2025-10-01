@@ -108,7 +108,7 @@ const InsightsView: React.FC = () => {
         </Typography>
       </Stack>
 
-      <Card sx={{ borderRadius: 4 }}>
+  <Card>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
             Total Focus Time
@@ -126,7 +126,7 @@ const InsightsView: React.FC = () => {
 
       <Grid container spacing={2}>
         <Grid item xs={12} md={4}>
-          <Card sx={{ borderRadius: 4, height: '100%' }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">
                 Daily average
@@ -141,7 +141,7 @@ const InsightsView: React.FC = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card sx={{ borderRadius: 4, height: '100%' }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">
                 Most focused
@@ -156,7 +156,7 @@ const InsightsView: React.FC = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card sx={{ borderRadius: 4, height: '100%' }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">
                 Sessions this week
@@ -172,7 +172,7 @@ const InsightsView: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Card sx={{ borderRadius: 4 }}>
+  <Card>
         <CardContent>
           <Typography variant="h6" fontWeight={600} gutterBottom>
             By subject
@@ -194,11 +194,11 @@ const InsightsView: React.FC = () => {
                     value={percent}
                     sx={{
                       height: 8,
-                      borderRadius: 999,
+                      borderRadius: 0,
                       bgcolor: 'rgba(255,255,255,0.08)',
                       '& .MuiLinearProgress-bar': {
                         bgcolor: subject.color ?? '#999',
-                        borderRadius: 'inherit'
+                        borderRadius: 0
                       }
                     }}
                   />
@@ -213,7 +213,7 @@ const InsightsView: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 4 }}>
+  <Card>
         <CardContent>
           <Typography variant="h6" fontWeight={600} gutterBottom>
             Recent sessions

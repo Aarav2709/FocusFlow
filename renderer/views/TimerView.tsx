@@ -189,7 +189,7 @@ const TimerView: React.FC = () => {
         </Stack>
       </Stack>
 
-      <Card sx={{ borderRadius: 4 }}>
+  <Card>
         <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
           <Typography variant="h1" sx={{ fontVariantNumeric: 'tabular-nums' }}>{hhmmss(totalSeconds)}</Typography>
           <Typography variant="body2" sx={{ mt: 1 }} color="text.secondary">{activeId ? `Focusing on ${subjects.find(s => s.id === activeId)?.name ?? ''}` : 'Idle'}</Typography>

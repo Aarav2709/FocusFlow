@@ -6,6 +6,7 @@ import BottomNav from './components/BottomNav';
 import HomePage from './pages/HomePage';
 import StatsPage from './pages/StatsPage';
 import MorePage from './pages/MorePage';
+import SettingsPage from './pages/SettingsPage';
 import { useAppState } from './context/AppStateContext';
 
 const routes = [
@@ -20,7 +21,9 @@ const App = () => {
 
   const activeRoute = useMemo(() => {
     const match = routes.find((route) => location.pathname.startsWith(route.path));
-    return match?.path ?? '/home';
+    if (match) return match.path;
+    if (location.pathname.startsWith('/settings')) return '/more';
+    return '/home';
   }, [location.pathname]);
 
   if (!ready) {
@@ -41,6 +44,7 @@ const App = () => {
           <Route path="/home" element={<HomePage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/more" element={<MorePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </Box>

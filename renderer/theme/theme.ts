@@ -36,7 +36,7 @@ export const useCreateTheme = () =>
             }
           },
           shape: {
-            borderRadius: 18
+            borderRadius: 0
           },
           components: {
             MuiButton: {
@@ -44,7 +44,14 @@ export const useCreateTheme = () =>
                 root: {
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderRadius: 14
+                  borderRadius: 0
+                }
+              }
+            },
+            MuiCard: {
+              styleOverrides: {
+                root: {
+                  borderRadius: 0
                 }
               }
             },
@@ -53,7 +60,36 @@ export const useCreateTheme = () =>
                 root: {
                   backgroundImage: 'none',
                   backgroundColor: '#121212',
-                  color: '#f5f5f5'
+                  color: '#f5f5f5',
+                  borderRadius: 0
+                }
+              }
+            },
+            MuiListItemButton: {
+              styleOverrides: {
+                root: {
+                  borderRadius: 0
+                }
+              }
+            },
+            MuiMenu: {
+              styleOverrides: {
+                paper: {
+                  borderRadius: 0
+                }
+              }
+            },
+            MuiDialog: {
+              styleOverrides: {
+                paper: {
+                  borderRadius: 0
+                }
+              }
+            },
+            MuiPopover: {
+              styleOverrides: {
+                paper: {
+                  borderRadius: 0
                 }
               }
             },
@@ -72,7 +108,7 @@ export const useCreateTheme = () =>
                 },
                 '*::-webkit-scrollbar-thumb': {
                   backgroundColor: '#333',
-                  borderRadius: 999
+                  borderRadius: 0
                 }
               }
             }

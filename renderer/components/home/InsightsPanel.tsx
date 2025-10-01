@@ -137,7 +137,6 @@ const InsightsPanel: React.FC = () => {
             >
               <Card
                 sx={{
-                  borderRadius: 4,
                   position: { xs: 'relative', sm: 'absolute' },
                   top: { sm: 0 },
                   bottom: { sm: 0 },
@@ -179,7 +178,7 @@ const InsightsPanel: React.FC = () => {
 
       <Grid container spacing={2}>
         <Grid item xs={12} md={7}>
-          <Card sx={{ borderRadius: 4, height: '100%' }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="overline" color="text.secondary">
                 TIME BY SUBJECT
@@ -195,9 +194,11 @@ const InsightsPanel: React.FC = () => {
                         cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                         contentStyle={{
                           backgroundColor: '#111',
-                          borderRadius: 12,
+                          borderRadius: 0,
                           border: '1px solid rgba(255,255,255,0.12)'
                         }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
                         formatter={(value: number) => [`${value} min`, 'Minutes']}
                       />
                       <Bar dataKey="minutes" fill="#64f4ac" radius={[6, 6, 0, 0]} maxBarSize={48} />
@@ -216,7 +217,7 @@ const InsightsPanel: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Card sx={{ borderRadius: 4, height: '100%' }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="overline" color="text.secondary">
                 FOCUS VS BREAK
@@ -244,9 +245,11 @@ const InsightsPanel: React.FC = () => {
                         cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                         contentStyle={{
                           backgroundColor: '#111',
-                          borderRadius: 12,
+                          borderRadius: 0,
                           border: '1px solid rgba(255,255,255,0.12)'
                         }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
                         formatter={(value: number, name: string) => [formatDuration(Number(value)), name]}
                         labelFormatter={() => ''}
                       />

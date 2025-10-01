@@ -197,7 +197,7 @@ const TimerPanel: React.FC = () => {
         </Stack>
       </Stack>
 
-      <Card sx={{ borderRadius: 4 }}>
+      <Card>
         <CardContent>
           <Stack spacing={1} alignItems="center">
             <Typography variant="h2" sx={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -229,7 +229,7 @@ const TimerPanel: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 4 }}>
+      <Card>
         <CardContent>
           <Stack spacing={2}>
             <Typography variant="h6" fontWeight={600}>
@@ -258,7 +258,7 @@ const TimerPanel: React.FC = () => {
                     justifyContent: 'space-between',
                     px: 1.5,
                     py: 1,
-                    borderRadius: 3,
+                    borderRadius: 0,
                     bgcolor: 'rgba(255,255,255,0.04)'
                   }}
                 >
@@ -337,7 +337,7 @@ const TimerPanel: React.FC = () => {
                       justifyContent: 'space-between',
                       px: 1.5,
                       py: 1,
-                      borderRadius: 2,
+                      borderRadius: 0,
                       bgcolor: 'rgba(255,255,255,0.05)'
                     }}
                   >

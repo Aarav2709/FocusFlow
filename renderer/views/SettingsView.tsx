@@ -74,7 +74,7 @@ const SettingsView = () => {
         </Typography>
       </Box>
 
-      <Card sx={{ borderRadius: 4 }}>
+      <Card>
         <CardContent>
           <Stack spacing={3}>
             <Typography variant="h6" fontWeight={600}>
@@ -97,7 +97,7 @@ const SettingsView = () => {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 4 }}>
+      <Card>
         <CardContent>
           <Stack spacing={3}>
             <Typography variant="h6" fontWeight={600}>
@@ -111,7 +111,7 @@ const SettingsView = () => {
         </CardContent>
       </Card>
 
-      <Card sx={{ borderRadius: 4 }}>
+      <Card>
         <CardContent>
           <Stack spacing={3}>
             <Typography variant="h6" fontWeight={600}>
