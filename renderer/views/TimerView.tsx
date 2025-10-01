@@ -8,7 +8,51 @@ import { useNavigate } from 'react-router-dom';
 
 type Subject = { id: string; name: string; color?: string };
 
-const STORAGE_KEY = 'ypt:subjects:v1';
+const SUBJECT_STORAGE_KEY = 'ypt:subjects:v1';
+const ELAPSED_STORAGE_KEY = 'ypt:elapsed:v1';
+const SUBJECT_EVENT = 'ypt:subjects-changed';
+const ELAPSED_EVENT = 'ypt:elapsed-changed';
+
+const DEFAULT_SUBJECTS: Subject[] = [
+  { id: '1', name: 'Maths', color: '#E53935' },
+  { id: '2', name: 'Science', color: '#1E88E5' }
+];
+
+const emitAppEvent = (name: string) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(name));
+  }
+};
+
+const readSubjectsFromStorage = (): Subject[] | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(SUBJECT_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? (data as Subject[]) : null;
+  } catch {
+    return null;
+  }
+};
+
+const readElapsedFromStorage = (): Record<string, number> | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(ELAPSED_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return typeof data === 'object' && data ? (data as Record<string, number>) : null;
+  } catch {
+    return null;
+  }
+};
+
+const normalizeColor = (value: string | undefined, fallback?: string) => {
+  const trimmed = value?.trim();
+  if (!trimmed) return fallback;
+  return trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+};
 
 function hhmmss(totalSeconds: number) {
   const hrs = Math.floor(totalSeconds / 3600);
@@ -19,22 +63,18 @@ function hhmmss(totalSeconds: number) {
 
 const TimerView: React.FC = () => {
   const navigate = useNavigate();
-  const [subjects, setSubjects] = useState<Subject[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [{ id: '1', name: 'Maths', color: '#E53935' }, { id: '2', name: 'Science', color: '#1E88E5' }];
-      return JSON.parse(raw) as Subject[];
-    } catch {
-      return [{ id: '1', name: 'Maths', color: '#E53935' }, { id: '2', name: 'Science', color: '#1E88E5' }];
-    }
-  });
+  const [subjects, setSubjects] = useState<Subject[]>(() => readSubjectsFromStorage() ?? DEFAULT_SUBJECTS);
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>(() => ({}));
+  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>(() => readElapsedFromStorage() ?? {});
   const [newSubject, setNewSubject] = useState('');
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects));
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(SUBJECT_STORAGE_KEY, JSON.stringify(subjects));
+    } catch {}
+    emitAppEvent(SUBJECT_EVENT);
   }, [subjects]);
 
   useEffect(() => {
@@ -46,6 +86,14 @@ const TimerView: React.FC = () => {
     }
     return () => { if (t) window.clearInterval(t); };
   }, [activeId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(ELAPSED_STORAGE_KEY, JSON.stringify(elapsedMap));
+    } catch {}
+    emitAppEvent(ELAPSED_EVENT);
+  }, [elapsedMap]);
 
   // persist elapsed map so Insights can read it
   useEffect(() => {
@@ -67,7 +115,10 @@ const TimerView: React.FC = () => {
 
   const addSubject = useCallback(() => {
     if (!newSubject.trim()) return;
-    const s: Subject = { id: Date.now().toString(), name: newSubject.trim(), color: '#' + Math.floor(Math.random() * 16777215).toString(16) };
+    const color = `#${Math.floor(Math.random() * 0xffffff)
+      .toString(16)
+      .padStart(6, '0')}`;
+    const s: Subject = { id: Date.now().toString(), name: newSubject.trim(), color };
     setSubjects((p) => [s, ...p]);
     setNewSubject('');
   }, [newSubject]);
@@ -109,11 +160,19 @@ const TimerView: React.FC = () => {
     handleCloseMenu();
   };
 
-  const cancelEdit = () => setEditingSubject(null);
+  const cancelEdit = () => {
+    setEditingSubject(null);
+    setEditingName('');
+    setEditingColor('');
+  };
   const confirmEdit = () => {
     if (!editingSubject) return;
-    setSubjects((p) => p.map((s) => s.id === editingSubject.id ? { ...s, name: editingName, color: editingColor || s.color } : s));
+    const safeName = editingName.trim() || editingSubject.name;
+    const nextColor = normalizeColor(editingColor, editingSubject.color);
+    setSubjects((p) => p.map((s) => (s.id === editingSubject.id ? { ...s, name: safeName, color: nextColor } : s)));
     setEditingSubject(null);
+    setEditingName('');
+    setEditingColor('');
   };
 
   return (
@@ -177,7 +236,7 @@ const TimerView: React.FC = () => {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField label="Name" value={editingName} onChange={(e) => setEditingName(e.target.value)} />
-            <TextField label="Color (hex)" value={editingColor} onChange={(e) => setEditingColor(e.target.value)} />
+            <TextField label="Color (hex)" value={editingColor} onChange={(e) => setEditingColor(e.target.value)} placeholder="#E53935" />
           </Stack>
         </DialogContent>
         <DialogActions>

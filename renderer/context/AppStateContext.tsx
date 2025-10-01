@@ -14,6 +14,45 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
+const DEFAULT_PREFERENCES: AppPreferences = {
+  theme: 'dark',
+  notificationsEnabled: false,
+  pomodoro: { focus: 25, shortBreak: 5, longBreak: 15 }
+};
+
+const PREFERENCES_STORAGE_KEY = 'ypt:preferences:v1';
+
+const mergePreferences = (incoming?: AppPreferences | null): AppPreferences => ({
+  theme: incoming?.theme ?? DEFAULT_PREFERENCES.theme,
+  notificationsEnabled: incoming?.notificationsEnabled ?? DEFAULT_PREFERENCES.notificationsEnabled,
+  pomodoro: {
+    focus: incoming?.pomodoro?.focus ?? DEFAULT_PREFERENCES.pomodoro.focus,
+    shortBreak: incoming?.pomodoro?.shortBreak ?? DEFAULT_PREFERENCES.pomodoro.shortBreak,
+    longBreak: incoming?.pomodoro?.longBreak ?? DEFAULT_PREFERENCES.pomodoro.longBreak
+  }
+});
+
+const readLocalPreferences = (): AppPreferences => {
+  if (typeof window === 'undefined') return DEFAULT_PREFERENCES;
+  try {
+    const raw = window.localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (!raw) return DEFAULT_PREFERENCES;
+    const parsed = JSON.parse(raw) as AppPreferences;
+    return mergePreferences(parsed);
+  } catch {
+    return DEFAULT_PREFERENCES;
+  }
+};
+
+const writeLocalPreferences = (prefs: AppPreferences) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+  } catch {
+    // ignore quota failures
+  }
+};
+
 // Minimal API accessor with safe fallbacks
 const useApi = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,8 +98,18 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
   }, [api.progress]);
 
   const loadPreferences = useCallback(async () => {
-    const prefs = await api.preferences.get();
-    setPreferences(prefs);
+    try {
+      const prefs = await api.preferences.get();
+      if (prefs) {
+        const merged = mergePreferences(prefs);
+        setPreferences(merged);
+        writeLocalPreferences(merged);
+        return;
+      }
+    } catch {
+      // fall back to local
+    }
+    setPreferences(readLocalPreferences());
   }, [api.preferences]);
 
   const refreshAll = useCallback(async () => {
@@ -82,11 +131,38 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
 
   const updatePreference = useCallback(
     async <T,>(key: keyof AppPreferences | string, value: T) => {
-      const prefs = await api.preferences.update({ key, value });
-      setPreferences(prefs);
-      return prefs;
+      let prefs: AppPreferences | null = null;
+      try {
+        prefs = await api.preferences.update({ key, value });
+      } catch {
+        // use local fallback
+      }
+
+      let next: AppPreferences;
+
+      if (prefs) {
+        next = mergePreferences(prefs);
+      } else {
+        const current = mergePreferences(preferences ?? readLocalPreferences());
+        if (key === 'pomodoro' && typeof value === 'object' && value) {
+          const pomodoroValue = value as Partial<AppPreferences['pomodoro']>;
+          next = mergePreferences({
+            ...current,
+            pomodoro: { ...current.pomodoro, ...pomodoroValue }
+          });
+        } else {
+          next = mergePreferences({
+            ...current,
+            [key]: value
+          } as AppPreferences);
+        }
+      }
+
+      setPreferences(next);
+      writeLocalPreferences(next);
+      return next;
     },
-    [api.preferences]
+    [api.preferences, preferences]
   );
 
   const value = useMemo<AppStateContextValue>(() => ({
