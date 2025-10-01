@@ -186,7 +186,10 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const pauseTimer = useCallback(() => {
-    setMode(null);
+    setMode((current) => {
+      if (current?.type === 'break') return null;
+      return { type: 'break' };
+    });
   }, []);
 
   const toggleSubject = useCallback(

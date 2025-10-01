@@ -72,6 +72,18 @@ const InsightsPanel: React.FC = () => {
     [subjects]
   );
 
+  const dailySeries = useMemo(() => {
+    const dates = Object.keys(history)
+      .sort()
+      .slice(-14);
+    if (!dates.length) return [] as { day: string; minutes: number }[];
+    return dates.map((day) => {
+      const entry = history[day];
+      const minutes = Math.round((entry?.focusSeconds ?? 0) / 60);
+      return { day, minutes };
+    });
+  }, [history]);
+
   const pieData = useMemo(
     () => [
       { name: 'Focus', value: totalFocusSeconds, fill: '#64f4ac' },
@@ -82,6 +94,7 @@ const InsightsPanel: React.FC = () => {
 
   const hasSubjectData = subjectDistribution.some((subject) => subject.seconds > 0);
   const hasPieData = totalSeconds > 0;
+  const hasDailyData = dailySeries.some((d) => d.minutes > 0);
 
   const metrics = useMemo(
     () => [
@@ -164,6 +177,44 @@ const InsightsPanel: React.FC = () => {
       </Grid>
 
       <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent sx={{ height: 260, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="overline" color="text.secondary">
+                DAILY FOCUS (LAST 14 DAYS)
+              </Typography>
+              <Box sx={{ flex: 1 }}>
+                {hasDailyData ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dailySeries}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="day" stroke="#bdbdbd" tickFormatter={(value: string) => value.slice(5)} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#bdbdbd" tickFormatter={(value) => `${value}m`} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                        contentStyle={{
+                          backgroundColor: '#111',
+                          borderRadius: 0,
+                          border: '1px solid rgba(255,255,255,0.12)'
+                        }}
+                        itemStyle={{ color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff' }}
+                        formatter={(value: number) => [`${value} min`, 'Focus']}
+                      />
+                      <Bar dataKey="minutes" fill="#64f4ac" radius={[4, 4, 0, 0]} maxBarSize={32} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      Start tracking sessions to unlock your daily trends.
+                    </Typography>
+                  </Stack>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
         <Grid item xs={12} md={7}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>

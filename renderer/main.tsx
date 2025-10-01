@@ -6,6 +6,7 @@ import { SnackbarProvider } from 'notistack';
 import App from './App';
 import { AppStateProvider } from './context/AppStateContext';
 import { StudyProvider } from './context/StudyContext';
+import { ProfileProvider } from './context/ProfileContext';
 import { useCreateTheme } from './theme/theme';
 
 const Root = () => {
@@ -14,13 +15,15 @@ const Root = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <AppStateProvider>
-          <StudyProvider>
-            <HashRouter>
-              <App />
-            </HashRouter>
-          </StudyProvider>
-        </AppStateProvider>
+        <ProfileProvider>
+          <AppStateProvider>
+            <StudyProvider>
+              <HashRouter>
+                <App />
+              </HashRouter>
+            </StudyProvider>
+          </AppStateProvider>
+        </ProfileProvider>
       </SnackbarProvider>
     </ThemeProvider>
   );

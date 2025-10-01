@@ -63,6 +63,7 @@ const TimerPanel: React.FC = () => {
   const [editColor, setEditColor] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [todoDrafts, setTodoDrafts] = useState<Record<string, string>>({});
+  const addButtonLabel = 'Add';
 
   const now = useMemo(() => new Date(), []);
 
@@ -314,7 +315,7 @@ const TimerPanel: React.FC = () => {
                       }}
                     />
                     <Button variant="contained" color="inherit" onClick={() => submitTodo(subject.id)}>
-                      Add
+                      {addButtonLabel}
                     </Button>
                   </Stack>
                   </Stack>

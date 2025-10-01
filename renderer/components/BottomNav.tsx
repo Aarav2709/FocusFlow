@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import MoreIcon from '@mui/icons-material/MoreHoriz';
+import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import InsightsIcon from '@mui/icons-material/InsightsOutlined';
 
 interface BottomNavProps {
@@ -13,7 +13,7 @@ interface BottomNavProps {
 const iconMap: Record<string, React.ReactNode> = {
   '/home': <HomeIcon fontSize="small" />,
   '/stats': <InsightsIcon fontSize="small" />,
-  '/more': <MoreIcon fontSize="small" />
+  '/settings': <SettingsIcon fontSize="small" />
 };
 
 const BottomNav: React.FC<BottomNavProps> = ({ activePath, routes }) => {
