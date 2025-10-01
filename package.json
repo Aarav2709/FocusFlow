@@ -10,16 +10,16 @@
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:watch:ts\" \"npm:dev:electron\"",
     "dev:renderer": "vite",
     "dev:main": "tsc -p main/tsconfig.json --watch --preserveWatchOutput",
-  "dev:electron": "cross-env ELECTRON_IS_DEV=1 wait-on dist/main/index.js dist/main/preload.js tcp:5173 && cross-env ELECTRON_IS_DEV=1 electron .",
-  "build": "npm run build:ts && npm run build:renderer && node ./scripts/ensure-native.js && npm run build:main",
+    "dev:electron": "cross-env ELECTRON_IS_DEV=1 wait-on dist/main/index.js dist/main/preload.js tcp:5173 && cross-env ELECTRON_IS_DEV=1 electron .",
+    "build": "npm run build:ts && npm run build:renderer && node ./scripts/ensure-native.js && npm run build:main",
     "build:renderer": "vite build",
     "build:main": "tsc -p main/tsconfig.json",
     "build:ts": "tsc -b",
     "watch:ts": "tsc -b -w",
-  "rebuild:native": "node ./scripts/ensure-native.js",
+    "rebuild:native": "node ./scripts/ensure-native.js",
     "lint": "eslint \"**/*.{ts,tsx,cjs}\"",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-  "package": "npm run build && electron-builder",
+    "package": "npm run build && electron-builder",
     "preview": "vite preview --host"
   },
   "dependencies": {
@@ -69,32 +69,45 @@
   "build": {
     "appId": "com.yeolpumta.desktop",
     "productName": "Yeolpumta",
+    "artifactName": "Yeolpumta-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "icon": "assets/yeolpumta.png",
     "files": [
       "dist/main/**/*",
       "dist/renderer/**/*",
       "assets/**/*",
       "package.json"
     ],
-    "directories": {
-      "output": "release"
-    },
     "extraMetadata": {
       "main": "dist/main/index.js"
     },
     "mac": {
-      "category": "public.app-category.education"
+      "category": "public.app-category.education",
+      "icon": "assets/yeolpumta.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "zip"
       ],
-      "publisherName": "Yeolpumta"
+      "publisherName": "Yeolpumta",
+      "icon": "assets/yeolpumta.ico",
+      "executableName": "Yeolpumta"
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "zip"
       ],
-      "category": "Education"
+      "category": "Education",
+      "icon": "assets/yeolpumta.png"
     }
   }
 }
