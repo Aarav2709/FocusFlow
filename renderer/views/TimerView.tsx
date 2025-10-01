@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Card, CardContent, Divider, IconButton, Menu, MenuItem, Stack, TextField, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Button, Card, CardContent, IconButton, Menu, MenuItem, Stack, TextField, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -47,6 +47,13 @@ const TimerView: React.FC = () => {
     return () => { if (t) window.clearInterval(t); };
   }, [activeId]);
 
+  // persist elapsed map so Insights can read it
+  useEffect(() => {
+    try {
+      localStorage.setItem('ypt:elapsed:v1', JSON.stringify(elapsedMap));
+    } catch {}
+  }, [elapsedMap]);
+
   const totalSeconds = useMemo(() => Object.values(elapsedMap).reduce((a, b) => a + b, 0), [elapsedMap]);
 
   const startStop = useCallback((id: string) => {
@@ -64,8 +71,6 @@ const TimerView: React.FC = () => {
     setSubjects((p) => [s, ...p]);
     setNewSubject('');
   }, [newSubject]);
-
-  const totalMinutes = Math.round(totalSeconds / 60);
 
   // menu & edit state
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -158,30 +163,7 @@ const TimerView: React.FC = () => {
           </Stack>
         </Box>
 
-        <Box sx={{ width: 280 }}>
-          <Typography variant="subtitle1">Insights</Typography>
-          <Divider sx={{ my: 1 }} />
-          <Typography variant="body2">Total time: {totalMinutes} min</Typography>
-          <Typography variant="body2">Daily avg: {Math.round(totalMinutes / 7)} min</Typography>
-          <Divider sx={{ my: 1 }} />
-          <Stack spacing={1}>
-            {subjects.map((s) => {
-              const mins = Math.round((elapsedMap[s.id] ?? 0) / 60);
-              const pct = totalMinutes > 0 ? Math.round((mins / totalMinutes) * 100) : 0;
-              return (
-                <Box key={s.id}>
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography variant="body2">{s.name}</Typography>
-                    <Typography variant="body2">{mins}m</Typography>
-                  </Stack>
-                  <Box sx={{ height: 8, bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 1, mt: 0.5 }}>
-                    <Box sx={{ width: `${pct}%`, height: '100%', bgcolor: s.color ?? '#999', borderRadius: 1 }} />
-                  </Box>
-                </Box>
-              );
-            })}
-          </Stack>
-        </Box>
+        {/* Insights moved to dedicated /insights route */}
       </Stack>
     </Stack>
 

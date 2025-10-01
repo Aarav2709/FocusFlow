@@ -4,11 +4,13 @@ import { Box, CircularProgress, Stack } from '@mui/material';
 import TitleBar from './components/TitleBar';
 import BottomNav from './components/BottomNav';
 import TimerView from './views/TimerView';
+import InsightsView from './views/InsightsView';
 import SettingsView from './views/SettingsView';
 import { useAppState } from './context/AppStateContext';
 
 const routes = [
   { path: '/timer', label: 'Time' },
+  { path: '/insights', label: 'Insights' },
   { path: '/settings', label: 'Settings' }
 ] as const;
 
@@ -37,6 +39,7 @@ const App = () => {
       <Box component="main" sx={{ flex: 1, p: 4, overflow: 'auto' }}>
         <Routes>
           <Route path="/timer" element={<TimerView />} />
+          <Route path="/insights" element={<InsightsView />} />
           <Route path="/settings" element={<SettingsView />} />
           <Route path="*" element={<Navigate to="/timer" replace />} />
         </Routes>

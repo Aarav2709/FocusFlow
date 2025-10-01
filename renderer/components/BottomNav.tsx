@@ -12,6 +12,7 @@ interface BottomNavProps {
 
 const iconMap: Record<string, React.ReactNode> = {
   '/timer': <TimerIcon fontSize="small" />,
+  '/insights': <InsightsIcon fontSize="small" />,
   '/settings': <SettingsIcon fontSize="small" />
 };
 
