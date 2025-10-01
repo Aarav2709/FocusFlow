@@ -109,9 +109,9 @@ const ProfileView = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 520, mx: 'auto', width: '100%' }}>
-      <Stack spacing={3}>
-        <Stack direction="row" alignItems="center" spacing={2}>
+    <Box sx={{ width: '100%' }}>
+      <Stack spacing={3} sx={{ width: '100%' }}>
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ width: '100%' }}>
           <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', color: '#000', fontWeight: 700 }}>
             {initials}
           </Avatar>
@@ -126,7 +126,7 @@ const ProfileView = () => {
           </Stack>
         </Stack>
 
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3, overflow: 'hidden' }}>
+  <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3, overflow: 'hidden', width: '100%' }}>
           <List disablePadding>
             {(['nickname', 'country', 'status'] as Array<Exclude<EditableField, null>>).map((field, index, array) => (
               <ListItem key={field} disablePadding sx={{ display: 'block' }}>

@@ -92,12 +92,12 @@ export interface StudyContextValue {
   history: Record<string, HistoryEntry>;
   totalFocusSeconds: number;
   activeSubjectId: string | null;
+  lastSubjectId: string | null;
   isBreakActive: boolean;
   isRunning: boolean;
   startSubject: (subjectId: string) => void;
   pauseTimer: () => void;
   toggleSubject: (subjectId: string) => void;
-  startBreak: () => void;
   resetSubject: (subjectId: string) => void;
   resetAll: () => void;
   addSubject: (name: string, color?: string) => void;
@@ -114,6 +114,8 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [state, setState] = useState<StudyStorage>(() => loadState());
   const [mode, setMode] = useState<TimerMode>(null);
   const lastTickRef = useRef<number>(Date.now());
+  const previousSubjectRef = useRef<string | null>(null);
+  const [lastSubjectId, setLastSubjectId] = useState<string | null>(null);
 
   const persist = useCallback((next: StudyStorage) => {
     persistState(next);
@@ -178,16 +180,25 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   const startSubject = useCallback((subjectId: string) => {
+    previousSubjectRef.current = subjectId;
+    setLastSubjectId(subjectId);
     setMode({ type: 'subject', subjectId });
-  }, []);
-
-  const startBreak = useCallback(() => {
-    setMode((current) => (current?.type === 'break' ? null : { type: 'break' }));
   }, []);
 
   const pauseTimer = useCallback(() => {
     setMode((current) => {
-      if (current?.type === 'break') return null;
+      if (current?.type === 'break') {
+        const previous = previousSubjectRef.current;
+        if (previous) {
+          setLastSubjectId(previous);
+          return { type: 'subject', subjectId: previous };
+        }
+        return null;
+      }
+      if (current?.type === 'subject') {
+        previousSubjectRef.current = current.subjectId;
+        setLastSubjectId(current.subjectId);
+      }
       return { type: 'break' };
     });
   }, []);
@@ -196,8 +207,12 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     (subjectId: string) => {
       setMode((current) => {
         if (current?.type === 'subject' && current.subjectId === subjectId) {
+          previousSubjectRef.current = subjectId;
+          setLastSubjectId(subjectId);
           return null;
         }
+        previousSubjectRef.current = subjectId;
+        setLastSubjectId(subjectId);
         return { type: 'subject', subjectId };
       });
     },
@@ -211,7 +226,14 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         subject.id === subjectId ? { ...subject, totalSeconds: 0 } : subject
       )
     }));
-    setMode((current) => (current?.type === 'subject' && current.subjectId === subjectId ? null : current));
+    setMode((current) => {
+      if (current?.type === 'subject' && current.subjectId === subjectId) {
+        previousSubjectRef.current = subjectId;
+        setLastSubjectId(subjectId);
+        return null;
+      }
+      return current;
+    });
   }, []);
 
   const resetAll = useCallback(() => {
@@ -220,6 +242,8 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       subjects: prev.subjects.map((subject) => ({ ...subject, totalSeconds: 0 })),
       breakSeconds: 0
     }));
+    previousSubjectRef.current = null;
+    setLastSubjectId(null);
     setMode(null);
   }, []);
 
@@ -263,7 +287,18 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...prev,
       subjects: prev.subjects.filter((subject) => subject.id !== subjectId)
     }));
-    setMode((current) => (current?.type === 'subject' && current.subjectId === subjectId ? null : current));
+    setMode((current) => {
+      if (current?.type === 'subject' && current.subjectId === subjectId) {
+        previousSubjectRef.current = null;
+        setLastSubjectId(null);
+        return null;
+      }
+      if (previousSubjectRef.current === subjectId) {
+        previousSubjectRef.current = null;
+        setLastSubjectId(null);
+      }
+      return current;
+    });
   }, []);
 
   const addTodo = useCallback((subjectId: string, text: string) => {
@@ -315,12 +350,12 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     history: state.history,
     totalFocusSeconds,
     activeSubjectId: mode?.type === 'subject' ? mode.subjectId : null,
-  isBreakActive: mode?.type === 'break',
+    lastSubjectId,
+    isBreakActive: mode?.type === 'break',
     isRunning: mode !== null,
     startSubject,
     pauseTimer,
     toggleSubject,
-    startBreak,
     resetSubject,
     resetAll,
     addSubject,
@@ -329,7 +364,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     addTodo,
     toggleTodo,
     removeTodo
-  }), [state, totalFocusSeconds, mode, startSubject, pauseTimer, toggleSubject, startBreak, resetSubject, resetAll, addSubject, updateSubject, removeSubject, addTodo, toggleTodo, removeTodo]);
+  }), [state, totalFocusSeconds, mode, lastSubjectId, startSubject, pauseTimer, toggleSubject, resetSubject, resetAll, addSubject, updateSubject, removeSubject, addTodo, toggleTodo, removeTodo]);
 
   return <StudyContext.Provider value={value}>{children}</StudyContext.Provider>;
 };

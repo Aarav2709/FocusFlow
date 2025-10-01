@@ -161,7 +161,10 @@ const InsightsPanel: React.FC = () => {
                   <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1.5 }}>
                     {metric.label}
                   </Typography>
-                  <Typography variant="h4" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 26, sm: 28, md: 30 }, lineHeight: 1.15 }}
+                  >
                     {metric.value}
                   </Typography>
                   {metric.caption ? (

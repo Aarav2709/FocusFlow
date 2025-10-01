@@ -43,11 +43,11 @@ const TimerPanel: React.FC = () => {
     totalFocusSeconds,
     breakSeconds,
     activeSubjectId,
+    lastSubjectId,
     isRunning,
     isBreakActive,
     toggleSubject,
     pauseTimer,
-    startBreak,
     resetSubject,
     addSubject,
     updateSubject,
@@ -68,14 +68,28 @@ const TimerPanel: React.FC = () => {
   const now = useMemo(() => new Date(), []);
 
   const activeSubject = activeSubjectId ? subjects.find((subject) => subject.id === activeSubjectId) ?? null : null;
+  const lastSubject = lastSubjectId ? subjects.find((subject) => subject.id === lastSubjectId) ?? null : null;
+  const displaySubject = isBreakActive ? lastSubject ?? activeSubject : activeSubject;
+  const primarySeconds = displaySubject ? displaySubject.totalSeconds : totalFocusSeconds;
 
-  const currentTimerSeconds = useMemo(() => {
-    if (isBreakActive) return breakSeconds;
-    if (activeSubject) return activeSubject.totalSeconds;
-    return totalFocusSeconds;
-  }, [isBreakActive, breakSeconds, activeSubject, totalFocusSeconds]);
+  const primaryTime = useMemo(() => formatDuration(primarySeconds), [primarySeconds]);
+  const breakTimeDisplay = useMemo(() => formatDuration(breakSeconds), [breakSeconds]);
 
-  const primaryTime = useMemo(() => formatDuration(currentTimerSeconds), [currentTimerSeconds]);
+  const statusText = useMemo(() => {
+    if (isBreakActive) {
+      if (lastSubject) {
+        return `On break from ${lastSubject.name} • break total ${breakTimeDisplay}`;
+      }
+      return `On break • break total ${breakTimeDisplay}`;
+    }
+    if (activeSubject) {
+      return `Focusing on ${activeSubject.name}`;
+    }
+    if (lastSubject) {
+      return `Ready to resume ${lastSubject.name}`;
+    }
+    return 'Idle';
+  }, [isBreakActive, lastSubject, breakTimeDisplay, activeSubject]);
 
   const handleAddSubject = () => {
     if (!newSubject.trim()) return;
@@ -122,11 +136,18 @@ const TimerPanel: React.FC = () => {
 
   const renderSubjectControls = (subject: StudySubject) => {
     const isActive = activeSubjectId === subject.id;
+    const handlePrimaryClick = () => {
+      if (isActive && isRunning) {
+        pauseTimer();
+      } else {
+        toggleSubject(subject.id);
+      }
+    };
     return (
       <Stack direction="row" spacing={1} alignItems="center">
         <IconButton
           size="small"
-          onClick={() => toggleSubject(subject.id)}
+          onClick={handlePrimaryClick}
           sx={{
             bgcolor: isActive ? subject.color : 'transparent',
             color: isActive ? '#000' : subject.color,
@@ -187,33 +208,17 @@ const TimerPanel: React.FC = () => {
       </Stack>
 
       <Card sx={{ mt: 0 }}>
-        <CardContent sx={{ py: 1.5, px: 2 }}>
+        <CardContent sx={{ py: 5, px: 2 }}>
           <Stack spacing={0.5} alignItems="center">
-            <Typography variant="h2" sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 36, sm: 48, md: 56 } }}>
+            <Typography
+              variant="h2"
+              sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 32, sm: 44, md: 52 }, lineHeight: 1.05, textAlign: 'center', width: '100%' }}
+            >
               {primaryTime}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {isBreakActive
-                ? 'On break'
-                : activeSubject
-                  ? `Focusing on ${activeSubject.name}`
-                  : 'Idle'}
+            <Typography variant="body2" color="text.secondary" textAlign="center">
+              {statusText}
             </Typography>
-            <Stack direction="row" spacing={1}>
-              {activeSubjectId || isBreakActive ? (
-                <Button variant="contained" color="inherit" onClick={pauseTimer}>
-                  Pause
-                </Button>
-              ) : null}
-              <Button
-                variant={isBreakActive ? 'contained' : 'outlined'}
-                color="inherit"
-                onClick={startBreak}
-                startIcon={<NightlightIcon fontSize="small" />}
-              >
-                {isBreakActive ? 'End Break' : 'Start Break'}
-              </Button>
-            </Stack>
           </Stack>
         </CardContent>
       </Card>
