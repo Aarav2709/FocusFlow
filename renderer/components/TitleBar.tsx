@@ -47,10 +47,13 @@ const TitleBar = () => {
       sx={{
         height: 56,
         px: 2.5,
-        backgroundColor: 'rgba(13, 17, 25, 0.92)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(8, 8, 8, 0.92)',
+        backdropFilter: 'blur(10px)',
         color: 'common.white',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        position: 'sticky',
+        top: 0,
+        zIndex: (theme) => theme.zIndex.appBar,
         WebkitAppRegion: 'drag',
         userSelect: 'none'
       }}
@@ -59,13 +62,17 @@ const TitleBar = () => {
         Yeolpumta
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, WebkitAppRegion: 'no-drag' }}>
-        <IconButton size="small" onClick={handleMinimize} sx={{ color: 'grey.200' }}>
+        <IconButton size="small" onClick={handleMinimize} sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
           <MinimizeIcon fontSize="inherit" />
         </IconButton>
-        <IconButton size="small" onClick={handleMaximize} sx={{ color: 'grey.200' }}>
+        <IconButton size="small" onClick={handleMaximize} sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
           {isMaximized ? <FilterNoneIcon fontSize="inherit" /> : <CropSquareIcon fontSize="inherit" />}
         </IconButton>
-        <IconButton size="small" onClick={handleClose} sx={{ color: 'grey.200', '&:hover': { color: 'error.light' } }}>
+        <IconButton
+          size="small"
+          onClick={handleClose}
+          sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(244,67,54,0.2)', color: 'error.light' } }}
+        >
           <CloseIcon fontSize="inherit" />
         </IconButton>
       </Box>

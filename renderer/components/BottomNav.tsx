@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import TimerIcon from '@mui/icons-material/TimerOutlined';
+import HomeIcon from '@mui/icons-material/HomeOutlined';
+import MoreIcon from '@mui/icons-material/MoreHoriz';
 import InsightsIcon from '@mui/icons-material/InsightsOutlined';
-import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 
 interface BottomNavProps {
   activePath: string;
@@ -11,9 +11,9 @@ interface BottomNavProps {
 }
 
 const iconMap: Record<string, React.ReactNode> = {
-  '/timer': <TimerIcon fontSize="small" />,
-  '/insights': <InsightsIcon fontSize="small" />,
-  '/settings': <SettingsIcon fontSize="small" />
+  '/home': <HomeIcon fontSize="small" />,
+  '/stats': <InsightsIcon fontSize="small" />,
+  '/more': <MoreIcon fontSize="small" />
 };
 
 const BottomNav: React.FC<BottomNavProps> = ({ activePath, routes }) => {

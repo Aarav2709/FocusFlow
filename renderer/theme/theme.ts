@@ -9,14 +9,18 @@ export const useCreateTheme = () =>
           palette: {
             mode: 'dark',
             background: {
-              default: '#080b11',
-              paper: '#0d1119'
+              default: '#050505',
+              paper: '#121212'
             },
             primary: {
-              main: '#5b7cfa'
+              main: '#f0f0f0'
             },
             secondary: {
-              main: '#9f99ff'
+              main: '#9e9e9e'
+            },
+            text: {
+              primary: '#ffffff',
+              secondary: '#bdbdbd'
             }
           },
           typography: {
@@ -26,6 +30,9 @@ export const useCreateTheme = () =>
             },
             h6: {
               fontWeight: 600
+            },
+            body2: {
+              color: '#bdbdbd'
             }
           },
           shape: {
@@ -44,7 +51,28 @@ export const useCreateTheme = () =>
             MuiPaper: {
               styleOverrides: {
                 root: {
-                  backgroundImage: 'none'
+                  backgroundImage: 'none',
+                  backgroundColor: '#121212',
+                  color: '#f5f5f5'
+                }
+              }
+            },
+            MuiCssBaseline: {
+              styleOverrides: {
+                body: {
+                  backgroundColor: '#050505',
+                  color: '#f5f5f5',
+                  scrollbarColor: '#333 #050505'
+                },
+                '*::-webkit-scrollbar': {
+                  width: 8
+                },
+                '*::-webkit-scrollbar-track': {
+                  background: '#050505'
+                },
+                '*::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#333',
+                  borderRadius: 999
                 }
               }
             }

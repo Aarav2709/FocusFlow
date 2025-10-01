@@ -1,39 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron';
+import { IPC_CHANNELS } from '@shared/ipc';
 import type { DatabaseService } from './database';
 import { StorageService } from './storage';
-
-const IPC_CHANNELS = {
-  NOTES_LIST: 'notes:list',
-  NOTES_CREATE: 'notes:create',
-  NOTES_UPDATE: 'notes:update',
-  NOTES_DELETE: 'notes:delete',
-
-  TASKS_LIST: 'tasks:list',
-  TASKS_CREATE: 'tasks:create',
-  TASKS_TOGGLE: 'tasks:toggle',
-  TASKS_DELETE: 'tasks:delete',
-
-  DECKS_LIST: 'decks:list',
-  DECKS_CREATE: 'decks:create',
-  DECKS_DELETE: 'decks:delete',
-
-  CARDS_LIST: 'cards:list',
-  CARDS_CREATE: 'cards:create',
-  CARDS_UPDATE: 'cards:update',
-  CARDS_DELETE: 'cards:delete',
-
-  PROGRESS_SUMMARY: 'progress:summary',
-  PROGRESS_SESSIONS: 'progress:sessions',
-  PROGRESS_LOG: 'progress:log',
-
-  PREFERENCES_GET: 'preferences:get',
-  PREFERENCES_UPDATE: 'preferences:update',
-
-  WINDOW_MINIMIZE: 'window:minimize',
-  WINDOW_MAXIMIZE: 'window:maximize',
-  WINDOW_CLOSE: 'window:close',
-  WINDOW_IS_MAXIMIZED: 'window:isMaximized'
-} as const;
 
 export function registerIpcHandlers(db: DatabaseService, getWindow: () => BrowserWindow | null): void {
   const safeHandler = <T>(handler: () => T | Promise<T>) => {

@@ -5,6 +5,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import App from './App';
 import { AppStateProvider } from './context/AppStateContext';
+import { StudyProvider } from './context/StudyContext';
 import { useCreateTheme } from './theme/theme';
 
 const Root = () => {
@@ -14,9 +15,11 @@ const Root = () => {
       <CssBaseline />
       <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <AppStateProvider>
-          <HashRouter>
-            <App />
-          </HashRouter>
+          <StudyProvider>
+            <HashRouter>
+              <App />
+            </HashRouter>
+          </StudyProvider>
         </AppStateProvider>
       </SnackbarProvider>
     </ThemeProvider>

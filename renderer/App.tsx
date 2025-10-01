@@ -3,15 +3,15 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Box, CircularProgress, Stack } from '@mui/material';
 import TitleBar from './components/TitleBar';
 import BottomNav from './components/BottomNav';
-import TimerView from './views/TimerView';
-import InsightsView from './views/InsightsView';
-import SettingsView from './views/SettingsView';
+import HomePage from './pages/HomePage';
+import StatsPage from './pages/StatsPage';
+import MorePage from './pages/MorePage';
 import { useAppState } from './context/AppStateContext';
 
 const routes = [
-  { path: '/timer', label: 'Time' },
-  { path: '/insights', label: 'Insights' },
-  { path: '/settings', label: 'Settings' }
+  { path: '/home', label: 'Home' },
+  { path: '/stats', label: 'Stats' },
+  { path: '/more', label: 'More' }
 ] as const;
 
 const App = () => {
@@ -20,7 +20,7 @@ const App = () => {
 
   const activeRoute = useMemo(() => {
     const match = routes.find((route) => location.pathname.startsWith(route.path));
-    return match?.path ?? '/timer';
+    return match?.path ?? '/home';
   }, [location.pathname]);
 
   if (!ready) {
@@ -38,10 +38,10 @@ const App = () => {
       <TitleBar />
       <Box component="main" sx={{ flex: 1, p: 4, overflow: 'auto' }}>
         <Routes>
-          <Route path="/timer" element={<TimerView />} />
-          <Route path="/insights" element={<InsightsView />} />
-          <Route path="/settings" element={<SettingsView />} />
-          <Route path="*" element={<Navigate to="/timer" replace />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </Box>
       <BottomNav activePath={activeRoute} routes={routes} />
