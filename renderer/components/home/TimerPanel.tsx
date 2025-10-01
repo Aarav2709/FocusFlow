@@ -69,18 +69,13 @@ const TimerPanel: React.FC = () => {
 
   const activeSubject = activeSubjectId ? subjects.find((subject) => subject.id === activeSubjectId) ?? null : null;
   const lastSubject = lastSubjectId ? subjects.find((subject) => subject.id === lastSubjectId) ?? null : null;
-  const displaySubject = isBreakActive ? lastSubject ?? activeSubject : activeSubject;
-  const primarySeconds = displaySubject ? displaySubject.totalSeconds : totalFocusSeconds;
 
-  const primaryTime = useMemo(() => formatDuration(primarySeconds), [primarySeconds]);
+  const primaryTime = useMemo(() => formatDuration(totalFocusSeconds), [totalFocusSeconds]);
   const breakTimeDisplay = useMemo(() => formatDuration(breakSeconds), [breakSeconds]);
 
   const statusText = useMemo(() => {
     if (isBreakActive) {
-      if (lastSubject) {
-        return `On break from ${lastSubject.name} • break total ${breakTimeDisplay}`;
-      }
-      return `On break • break total ${breakTimeDisplay}`;
+      return `On break • ${breakTimeDisplay}`;
     }
     if (activeSubject) {
       return `Focusing on ${activeSubject.name}`;
