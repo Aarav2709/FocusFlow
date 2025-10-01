@@ -69,7 +69,7 @@
   "build": {
     "appId": "com.yeolpumta.desktop",
     "productName": "Yeolpumta",
-    "artifactName": "Yeolpumta-${version}-${os}-${arch}.${ext}",
+    "artifactName": "Yeolpumta.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -78,6 +78,7 @@
     "files": [
       "dist/main/**/*",
       "dist/renderer/**/*",
+      "dist/shared/**/*",
       "assets/**/*",
       "package.json"
     ],
@@ -94,10 +95,9 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
       ],
-      "publisherName": "Yeolpumta",
+      "artifactName": "Yeolpumta.${ext}",
       "icon": "assets/yeolpumta.ico",
       "executableName": "Yeolpumta"
     },
