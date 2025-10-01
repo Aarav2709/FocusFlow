@@ -18,6 +18,33 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Load IPC_CHANNELS at runtime. During Vite dev the renderer sandbox may attempt to
 // evaluate the preload bundle and fail to resolve the '@shared' alias. In that case
 // fall back to loading the compiled file in dist/shared/ipc.js directly.
+const IPC_FALLBACK_CHANNELS = {
+  NOTES_LIST: 'ypt:notes:list',
+  NOTES_CREATE: 'ypt:notes:create',
+  NOTES_UPDATE: 'ypt:notes:update',
+  NOTES_DELETE: 'ypt:notes:delete',
+  TASKS_LIST: 'ypt:tasks:list',
+  TASKS_CREATE: 'ypt:tasks:create',
+  TASKS_TOGGLE: 'ypt:tasks:toggle',
+  TASKS_DELETE: 'ypt:tasks:delete',
+  DECKS_LIST: 'ypt:decks:list',
+  DECKS_CREATE: 'ypt:decks:create',
+  DECKS_DELETE: 'ypt:decks:delete',
+  CARDS_LIST: 'ypt:cards:list',
+  CARDS_CREATE: 'ypt:cards:create',
+  CARDS_UPDATE: 'ypt:cards:update',
+  CARDS_DELETE: 'ypt:cards:delete',
+  PROGRESS_SUMMARY: 'ypt:progress:summary',
+  PROGRESS_SESSIONS: 'ypt:progress:sessions',
+  PROGRESS_LOG: 'ypt:progress:log',
+  PREFERENCES_GET: 'ypt:prefs:get',
+  PREFERENCES_UPDATE: 'ypt:prefs:update',
+  WINDOW_MINIMIZE: 'ypt:window:minimize',
+  WINDOW_MAXIMIZE: 'ypt:window:maximize',
+  WINDOW_CLOSE: 'ypt:window:close',
+  WINDOW_IS_MAXIMIZED: 'ypt:window:is-maximized'
+} as const;
+
 let IPC_CHANNELS: any = {};
 // Only try to load the shared IPC constants when running inside Electron.
 // The preload bundle may be evaluated by Vite in a sandboxed environment that
@@ -39,12 +66,16 @@ if (typeof process !== 'undefined' && process.versions && process.versions.elect
       // If this fails while evaluating in a bundler sandbox, silence the noisy stack
       // and fall back to degraded mode; a one-time console.warn is emitted below
       // to indicate degraded mode.
-      IPC_CHANNELS = {};
+  IPC_CHANNELS = { ...IPC_FALLBACK_CHANNELS };
     }
   }
 } else {
   // Not running in Electron; don't attempt Node requires here.
-  IPC_CHANNELS = {};
+  IPC_CHANNELS = { ...IPC_FALLBACK_CHANNELS };
+}
+
+if (!IPC_CHANNELS || Object.keys(IPC_CHANNELS).length === 0) {
+  IPC_CHANNELS = { ...IPC_FALLBACK_CHANNELS };
 }
 import type {
   CreateCardPayload,

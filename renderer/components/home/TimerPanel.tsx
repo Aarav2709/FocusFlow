@@ -20,9 +20,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import TimerIcon from '@mui/icons-material/TimerOutlined';
 import NightlightIcon from '@mui/icons-material/NightlightRound';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useStudy, StudySubject, SubjectTodo } from '../../context/StudyContext';
 
 const formatDuration = (seconds: number) => {
@@ -35,11 +35,6 @@ const formatDuration = (seconds: number) => {
 type SubjectMenuState = {
   anchor: HTMLElement | null;
   subject: StudySubject | null;
-};
-
-type TodoDialogState = {
-  open: boolean;
-  subjectId: string | null;
 };
 
 const TimerPanel: React.FC = () => {
@@ -67,8 +62,7 @@ const TimerPanel: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [todoDialog, setTodoDialog] = useState<TodoDialogState>({ open: false, subjectId: null });
-  const [newTodo, setNewTodo] = useState('');
+  const [todoDrafts, setTodoDrafts] = useState<Record<string, string>>({});
 
   const now = useMemo(() => new Date(), []);
 
@@ -114,20 +108,16 @@ const TimerPanel: React.FC = () => {
     closeMenu();
   };
 
-  const openTodos = (subject: StudySubject) => {
-    setTodoDialog({ open: true, subjectId: subject.id });
-    setNewTodo('');
+  const handleTodoDraftChange = (subjectId: string, value: string) => {
+    setTodoDrafts((prev) => ({ ...prev, [subjectId]: value }));
   };
 
-  const closeTodos = () => setTodoDialog({ open: false, subjectId: null });
-
-  const handleAddTodo = () => {
-    if (!todoDialog.subjectId || !newTodo.trim()) return;
-    addTodo(todoDialog.subjectId, newTodo.trim());
-    setNewTodo('');
+  const submitTodo = (subjectId: string) => {
+    const draft = (todoDrafts[subjectId] ?? '').trim();
+    if (!draft) return;
+    addTodo(subjectId, draft);
+    setTodoDrafts((prev) => ({ ...prev, [subjectId]: '' }));
   };
-
-  const dialogSubject = todoDialog.subjectId ? subjects.find((subject) => subject.id === todoDialog.subjectId) ?? null : null;
 
   const renderSubjectControls = (subject: StudySubject) => {
     const isActive = activeSubjectId === subject.id;
@@ -156,9 +146,6 @@ const TimerPanel: React.FC = () => {
         <IconButton size="small" onClick={(event) => openMenu(event, subject)} sx={{ color: 'text.secondary' }}>
           <MoreVertIcon fontSize="small" />
         </IconButton>
-        <IconButton size="small" onClick={() => openTodos(subject)} sx={{ color: 'text.secondary' }}>
-          <AssignmentIcon fontSize="small" />
-        </IconButton>
       </Stack>
     );
   };
@@ -170,7 +157,7 @@ const TimerPanel: React.FC = () => {
   });
 
   return (
-    <Stack spacing={3}>
+  <Stack spacing={2}>
       <Stack
         direction="row"
         alignItems="center"
@@ -231,7 +218,7 @@ const TimerPanel: React.FC = () => {
 
       <Card>
         <CardContent>
-          <Stack spacing={2}>
+          <Stack spacing={1.5}>
             <Typography variant="h6" fontWeight={600}>
               Subjects
             </Typography>
@@ -248,35 +235,90 @@ const TimerPanel: React.FC = () => {
               </Button>
             </Stack>
 
-            <Stack spacing={1.5}>
+            <Stack spacing={1.25}>
               {subjects.map((subject) => (
-                <Box
-                  key={subject.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 0,
-                    bgcolor: 'rgba(255,255,255,0.04)'
-                  }}
-                >
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: subject.color, color: '#000', fontSize: 14 }}>
-                      {subject.name.slice(0, 2).toUpperCase()}
-                    </Avatar>
-                    <Stack>
-                      <Typography variant="body1" fontWeight={600}>
-                        {subject.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDuration(subject.totalSeconds)}
-                      </Typography>
+                <React.Fragment key={subject.id}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 1.5,
+                      py: 1,
+                      bgcolor: 'rgba(255,255,255,0.04)'
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Avatar sx={{ width: 32, height: 32, bgcolor: subject.color, color: '#000', fontSize: 14 }}>
+                        {subject.name.slice(0, 2).toUpperCase()}
+                      </Avatar>
+                      <Stack>
+                        <Typography variant="body1" fontWeight={600}>
+                          {subject.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDuration(subject.totalSeconds)}
+                        </Typography>
+                      </Stack>
                     </Stack>
+                    {renderSubjectControls(subject)}
+                  </Box>
+                  <Stack spacing={0.75} sx={{ px: 4, py: 1, bgcolor: 'rgba(255,255,255,0.02)' }}>
+                  {subject.todos.length ? (
+                    subject.todos.map((todo: SubjectTodo) => (
+                      <Box
+                        key={todo.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          onClick={() => toggleTodo(subject.id, todo.id)}
+                          sx={{
+                            cursor: 'pointer',
+                            textDecoration: todo.completed ? 'line-through' : 'none',
+                            color: todo.completed ? 'text.disabled' : 'text.primary'
+                          }}
+                        >
+                          {todo.text}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => removeTodo(subject.id, todo.id)}
+                          sx={{ color: 'text.secondary' }}
+                        >
+                          <ClearIcon fontSize="inherit" />
+                        </IconButton>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No todos yet. Add one below.
+                    </Typography>
+                  )}
+                  <Stack direction="row" spacing={1}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Add todo"
+                      value={todoDrafts[subject.id] ?? ''}
+                      onChange={(event) => handleTodoDraftChange(subject.id, event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          submitTodo(subject.id);
+                        }
+                      }}
+                    />
+                    <Button variant="contained" color="inherit" onClick={() => submitTodo(subject.id)}>
+                      Add
+                    </Button>
                   </Stack>
-                  {renderSubjectControls(subject)}
-                </Box>
+                  </Stack>
+                </React.Fragment>
               ))}
             </Stack>
           </Stack>
@@ -306,67 +348,6 @@ const TimerPanel: React.FC = () => {
           <Button variant="contained" color="inherit" onClick={handleEditSave}>
             Save
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={todoDialog.open} onClose={closeTodos} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Todos · {dialogSubject?.name ?? ''}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Stack direction="row" spacing={1}>
-              <TextField
-                fullWidth
-                placeholder="Add todo"
-                value={newTodo}
-                onChange={(event) => setNewTodo(event.target.value)}
-              />
-              <Button variant="contained" color="inherit" onClick={handleAddTodo}>
-                Add
-              </Button>
-            </Stack>
-            <Stack spacing={1.5}>
-              {dialogSubject?.todos.length ? (
-                dialogSubject.todos.map((todo: SubjectTodo) => (
-                  <Box
-                    key={todo.id}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      px: 1.5,
-                      py: 1,
-                      borderRadius: 0,
-                      bgcolor: 'rgba(255,255,255,0.05)'
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ textDecoration: todo.completed ? 'line-through' : 'none', cursor: 'pointer' }}
-                      onClick={() => dialogSubject && toggleTodo(dialogSubject.id, todo.id)}
-                    >
-                      {todo.text}
-                    </Typography>
-                    <Button
-                      size="small"
-                      color="inherit"
-                      onClick={() => dialogSubject && removeTodo(dialogSubject.id, todo.id)}
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No todos yet. Add the tasks you want linked to this subject.
-                </Typography>
-              )}
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeTodos}>Close</Button>
         </DialogActions>
       </Dialog>
     </Stack>

@@ -127,22 +127,9 @@ const InsightsPanel: React.FC = () => {
       <Grid container spacing={2}>
         {metrics.map((metric) => (
           <Grid key={metric.key} item xs={12} sm={6} md={3}>
-            <Box
-              sx={{
-                position: 'relative',
-                width: '100%',
-                pb: { xs: 0, sm: '100%' },
-                minHeight: { xs: 160, sm: 'auto' }
-              }}
-            >
+            <Box sx={{ width: '100%', minHeight: { xs: 130, sm: 150 } }}>
               <Card
                 sx={{
-                  position: { xs: 'relative', sm: 'absolute' },
-                  top: { sm: 0 },
-                  bottom: { sm: 0 },
-                  left: { sm: 0 },
-                  right: { sm: 0 },
-                  width: '100%',
                   height: '100%',
                   display: 'flex',
                   bgcolor: 'rgba(255,255,255,0.03)',
@@ -154,7 +141,7 @@ const InsightsPanel: React.FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    gap: 1.5,
+                    gap: 1,
                     height: '100%'
                   }}
                 >

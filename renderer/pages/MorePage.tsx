@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -6,11 +6,13 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Switch,
   Stack,
   Typography
 } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Tune';
 import { useNavigate } from 'react-router-dom';
+import { useAppState } from '../context/AppStateContext';
 
 type MoreOption = {
   label: string;
@@ -21,6 +23,8 @@ type MoreOption = {
 
 const MorePage: React.FC = () => {
   const navigate = useNavigate();
+  const { preferences, updatePreference } = useAppState();
+  const [pending, setPending] = useState(false);
 
   const options = useMemo<MoreOption[]>(
     () => [
@@ -29,7 +33,7 @@ const MorePage: React.FC = () => {
       { label: 'Theme', description: 'Dark theme enabled', disabled: true },
       {
         label: 'Settings',
-        description: 'Notification & pomodoro preferences',
+        description: 'Manage account preferences',
         action: () => navigate('/settings')
       },
       { label: 'Region', description: 'Korea', disabled: true },
@@ -37,6 +41,15 @@ const MorePage: React.FC = () => {
     ],
     [navigate]
   );
+
+  const toggleNotifications = async (_: unknown, checked: boolean) => {
+    setPending(true);
+    try {
+      await updatePreference('notificationsEnabled', checked);
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
     <Stack spacing={3} sx={{ px: { xs: 2, md: 4 }, py: 3 }}>
@@ -46,6 +59,37 @@ const MorePage: React.FC = () => {
         </Typography>
         <SettingsIcon sx={{ color: 'text.secondary' }} />
       </Stack>
+      <Card>
+        <CardContent>
+          <Stack spacing={1.5}>
+            <Typography variant="h6" fontWeight={600}>
+              Focus & notifications
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Keep your routine in sync across devices.
+            </Typography>
+            <Stack spacing={1}>
+              <Typography variant="body2">
+                Focus mode is always on to keep distractions away.
+              </Typography>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography variant="body2" fontWeight={600}>
+                  Desktop notifications
+                </Typography>
+                <Switch
+                  edge="end"
+                  checked={preferences?.notificationsEnabled ?? false}
+                  onChange={toggleNotifications}
+                  disabled={pending || !preferences}
+                />
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                Get alerts when sessions start and finish.
+              </Typography>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
       <Card>
         <CardContent>
           <List disablePadding>
