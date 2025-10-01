@@ -1,11 +1,8 @@
-// ensure @shared/* resolves inside the preload process during packaged runtime by wiring aliases manually
+// ensure module aliasing is available inside preload just like in the main process
 try {
   if (typeof process !== 'undefined' && process.versions?.electron) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const path = require('node:path');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const moduleAlias = require('module-alias');
-    moduleAlias.addAlias('@shared', path.join(__dirname, '../shared'));
+    require('./register-aliases');
   }
 } catch (err) {
   /* ignore — in dev the module may not be resolvable by the renderer bundler */
