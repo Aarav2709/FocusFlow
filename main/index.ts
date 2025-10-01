@@ -1,10 +1,12 @@
-// register module-alias so compiled Electron main process can resolve @shared/* imports to dist/shared
-import 'module-alias/register';
+// register runtime aliases so the compiled Electron main process can resolve @shared/* inside packaged builds
+import { addAlias } from 'module-alias';
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
 import path from 'node:path';
 import { DatabaseService } from './database';
 import { registerIpcHandlers, registerStorageIpcHandlers } from './ipc';
 import { StorageService } from './storage';
+
+addAlias('@shared', path.join(__dirname, '../shared'));
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 let mainWindow: BrowserWindow | null = null;

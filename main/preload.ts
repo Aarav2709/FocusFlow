@@ -1,11 +1,11 @@
-// ensure module-alias is registered in the preload process so @shared/* resolves in compiled preload.js
-// use a runtime require wrapped in try/catch to avoid bundlers (Vite) attempting to resolve this during renderer dev
+// ensure @shared/* resolves inside the preload process during packaged runtime by wiring aliases manually
 try {
-  // Only attempt to register in Electron runtime where module-alias will be available
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+  if (typeof process !== 'undefined' && process.versions?.electron) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('module-alias/register');
+    const path = require('node:path');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const moduleAlias = require('module-alias');
+    moduleAlias.addAlias('@shared', path.join(__dirname, '../shared'));
   }
 } catch (err) {
   /* ignore — in dev the module may not be resolvable by the renderer bundler */
@@ -66,7 +66,7 @@ if (typeof process !== 'undefined' && process.versions && process.versions.elect
       // If this fails while evaluating in a bundler sandbox, silence the noisy stack
       // and fall back to degraded mode; a one-time console.warn is emitted below
       // to indicate degraded mode.
-  IPC_CHANNELS = { ...IPC_FALLBACK_CHANNELS };
+      IPC_CHANNELS = { ...IPC_FALLBACK_CHANNELS };
     }
   }
 } else {
