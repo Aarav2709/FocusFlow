@@ -1,12 +1,11 @@
 // register runtime aliases so the compiled Electron main process can resolve @shared/* inside packaged builds
-import path from 'node:path';
 import 'module-alias/register';
+import './register-aliases';
+import path from 'node:path';
 import { app, BrowserWindow, nativeTheme, shell } from 'electron';
 import { DatabaseService } from './database';
 import { registerIpcHandlers, registerStorageIpcHandlers } from './ipc';
 import { StorageService } from './storage';
-
-require('./register-aliases');
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 let mainWindow: BrowserWindow | null = null;
