@@ -10,6 +10,7 @@ type Subject = { id: string; name: string; color?: string };
 
 const SUBJECT_STORAGE_KEY = 'ypt:subjects:v1';
 const ELAPSED_STORAGE_KEY = 'ypt:elapsed:v1';
+const ELAPSED_DAY_KEY = 'ypt:elapsed:day';
 const SUBJECT_EVENT = 'ypt:subjects-changed';
 const ELAPSED_EVENT = 'ypt:elapsed-changed';
 
@@ -36,15 +37,23 @@ const readSubjectsFromStorage = (): Subject[] | null => {
   }
 };
 
-const readElapsedFromStorage = (): Record<string, number> | null => {
-  if (typeof window === 'undefined') return null;
+const dayKey = (date: Date = new Date()) => date.toISOString().slice(0, 10);
+
+const readElapsedFromStorage = (): { day: string; map: Record<string, number> } => {
+  const fallback = { day: dayKey(), map: {} as Record<string, number> };
+  if (typeof window === 'undefined') return fallback;
   try {
     const raw = window.localStorage.getItem(ELAPSED_STORAGE_KEY);
-    if (!raw) return null;
+    const storedDay = window.localStorage.getItem(ELAPSED_DAY_KEY) ?? dayKey();
+    if (!raw) return { day: storedDay, map: {} };
     const data = JSON.parse(raw);
-    return typeof data === 'object' && data ? (data as Record<string, number>) : null;
+    const map = typeof data === 'object' && data ? (data as Record<string, number>) : {};
+    if (storedDay !== dayKey()) {
+      return { day: dayKey(), map: {} };
+    }
+    return { day: storedDay, map };
   } catch {
-    return null;
+    return fallback;
   }
 };
 
@@ -65,8 +74,10 @@ const TimerView: React.FC = () => {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState<Subject[]>(() => readSubjectsFromStorage() ?? DEFAULT_SUBJECTS);
 
+  const initialElapsed = readElapsedFromStorage();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>(() => readElapsedFromStorage() ?? {});
+  const [elapsedDay, setElapsedDay] = useState<string>(initialElapsed.day);
+  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>(initialElapsed.map);
   const [newSubject, setNewSubject] = useState('');
 
   useEffect(() => {
@@ -91,16 +102,31 @@ const TimerView: React.FC = () => {
     if (typeof window === 'undefined') return;
     try {
       window.localStorage.setItem(ELAPSED_STORAGE_KEY, JSON.stringify(elapsedMap));
+      window.localStorage.setItem(ELAPSED_DAY_KEY, elapsedDay);
     } catch {}
     emitAppEvent(ELAPSED_EVENT);
-  }, [elapsedMap]);
+  }, [elapsedMap, elapsedDay]);
 
   // persist elapsed map so Insights can read it
   useEffect(() => {
     try {
       localStorage.setItem('ypt:elapsed:v1', JSON.stringify(elapsedMap));
+      localStorage.setItem(ELAPSED_DAY_KEY, elapsedDay);
     } catch {}
-  }, [elapsedMap]);
+  }, [elapsedMap, elapsedDay]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const interval = window.setInterval(() => {
+      const today = dayKey();
+      if (today !== elapsedDay) {
+        setElapsedDay(today);
+        setElapsedMap({});
+        setActiveId(null);
+      }
+    }, 60_000);
+    return () => window.clearInterval(interval);
+  }, [elapsedDay]);
 
   const totalSeconds = useMemo(() => Object.values(elapsedMap).reduce((a, b) => a + b, 0), [elapsedMap]);
 

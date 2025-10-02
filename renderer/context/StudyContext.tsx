@@ -22,6 +22,7 @@ type HistoryEntry = {
 };
 
 type StudyStorage = {
+  currentDay: string;
   subjects: StudySubject[];
   breakSeconds: number;
   history: Record<string, HistoryEntry>;
@@ -35,7 +36,13 @@ const DEFAULT_SUBJECTS: StudySubject[] = [
   { id: 'science', name: 'Science', color: '#4dabf7', totalSeconds: 0, todos: [], createdAt: new Date().toISOString() }
 ];
 
+const getTodayKey = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
 const DEFAULT_STATE: StudyStorage = {
+  currentDay: getTodayKey(),
   subjects: DEFAULT_SUBJECTS,
   breakSeconds: 0,
   history: {}
@@ -49,13 +56,23 @@ const loadState = (): StudyStorage => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw) as StudyStorage;
+    const today = getTodayKey();
     if (!parsed.subjects || !Array.isArray(parsed.subjects)) return DEFAULT_STATE;
+    let subjects = parsed.subjects.map((subject) => ({
+      ...subject,
+      todos: subject.todos ?? []
+    }));
+    let breakSeconds = parsed.breakSeconds ?? 0;
+    let currentDay = parsed.currentDay ?? today;
+    if (currentDay !== today) {
+      subjects = subjects.map((subject) => ({ ...subject, totalSeconds: 0 }));
+      breakSeconds = 0;
+      currentDay = today;
+    }
     return {
-      subjects: parsed.subjects.map((subject) => ({
-        ...subject,
-        todos: subject.todos ?? []
-      })),
-      breakSeconds: parsed.breakSeconds ?? 0,
+      currentDay,
+      subjects,
+      breakSeconds,
       history: parsed.history ?? {}
     };
   } catch (err) {
@@ -71,11 +88,6 @@ const persistState = (state: StudyStorage) => {
   } catch (err) {
     console.warn('[StudyContext] Failed to persist study state', err);
   }
-};
-
-const getTodayKey = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
 const randomId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
@@ -116,6 +128,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const lastTickRef = useRef<number>(Date.now());
   const previousSubjectRef = useRef<string | null>(null);
   const [lastSubjectId, setLastSubjectId] = useState<string | null>(null);
+  const currentDayRef = useRef<string>(state.currentDay);
 
   const persist = useCallback((next: StudyStorage) => {
     persistState(next);
@@ -136,6 +149,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setState((prev) => {
         if (!mode) return prev;
         const next: StudyStorage = {
+          currentDay: prev.currentDay,
           subjects: prev.subjects.map((subject) => ({ ...subject, todos: subject.todos.map((todo) => ({ ...todo })) })),
           breakSeconds: prev.breakSeconds,
           history: Object.entries(prev.history).reduce<Record<string, HistoryEntry>>((acc, [key, value]) => {
@@ -173,6 +187,29 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const interval = window.setInterval(step, 1000);
     return () => window.clearInterval(interval);
   }, [mode]);
+
+  useEffect(() => {
+    currentDayRef.current = state.currentDay;
+  }, [state.currentDay]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const interval = window.setInterval(() => {
+      const today = getTodayKey();
+      if (currentDayRef.current === today) return;
+      currentDayRef.current = today;
+      setState((prev) => ({
+        ...prev,
+        currentDay: today,
+        subjects: prev.subjects.map((subject) => ({ ...subject, totalSeconds: 0 })),
+        breakSeconds: 0
+      }));
+      previousSubjectRef.current = null;
+      setLastSubjectId(null);
+      setMode(null);
+    }, 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const totalFocusSeconds = useMemo(
     () => state.subjects.reduce((acc, subject) => acc + subject.totalSeconds, 0),
