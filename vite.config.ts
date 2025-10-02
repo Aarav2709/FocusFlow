@@ -4,7 +4,8 @@ import path from 'node:path';
 
 const rootDir = path.resolve(__dirname, 'renderer');
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? './' : '/',
   root: rootDir,
   plugins: [react()],
   server: {
@@ -29,4 +30,4 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, 'shared')
     }
   }
-});
+}));
