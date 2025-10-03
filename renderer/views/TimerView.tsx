@@ -37,7 +37,12 @@ const readSubjectsFromStorage = (): Subject[] | null => {
   }
 };
 
-const dayKey = (date: Date = new Date()) => date.toISOString().slice(0, 10);
+const dayKey = (date: Date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const readElapsedFromStorage = (): { day: string; map: Record<string, number> } => {
   const fallback = { day: dayKey(), map: {} as Record<string, number> };
@@ -114,6 +119,15 @@ const TimerView: React.FC = () => {
       localStorage.setItem(ELAPSED_DAY_KEY, elapsedDay);
     } catch {}
   }, [elapsedMap, elapsedDay]);
+
+  useEffect(() => {
+    const today = dayKey();
+    if (today !== elapsedDay) {
+      setElapsedDay(today);
+      setElapsedMap({});
+      setActiveId(null);
+    }
+  }, [elapsedDay]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;

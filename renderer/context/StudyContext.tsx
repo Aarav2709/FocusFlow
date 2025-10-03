@@ -193,6 +193,22 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [state.currentDay]);
 
   useEffect(() => {
+    const today = getTodayKey();
+    if (state.currentDay !== today) {
+      currentDayRef.current = today;
+      setState((prev) => ({
+        ...prev,
+        currentDay: today,
+        subjects: prev.subjects.map((subject) => ({ ...subject, totalSeconds: 0 })),
+        breakSeconds: 0
+      }));
+      previousSubjectRef.current = null;
+      setLastSubjectId(null);
+      setMode(null);
+    }
+  }, [state.currentDay]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const interval = window.setInterval(() => {
       const today = getTodayKey();

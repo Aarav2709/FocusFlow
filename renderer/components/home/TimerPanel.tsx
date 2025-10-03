@@ -42,6 +42,7 @@ const TimerPanel: React.FC = () => {
     subjects,
     totalFocusSeconds,
     breakSeconds,
+    history,
     activeSubjectId,
     lastSubjectId,
     isRunning,
@@ -71,7 +72,13 @@ const TimerPanel: React.FC = () => {
   const lastSubject = lastSubjectId ? subjects.find((subject) => subject.id === lastSubjectId) ?? null : null;
 
   const primaryTime = useMemo(() => formatDuration(totalFocusSeconds), [totalFocusSeconds]);
-  const breakTimeDisplay = useMemo(() => formatDuration(breakSeconds), [breakSeconds]);
+  const breakSecondsToday = useMemo(() => {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return history[key]?.breakSeconds ?? breakSeconds;
+  }, [history, breakSeconds]);
+
+  const breakTimeDisplay = useMemo(() => formatDuration(breakSecondsToday), [breakSecondsToday]);
 
   const statusText = useMemo(() => {
     if (isBreakActive) {
