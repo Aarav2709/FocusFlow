@@ -55,4 +55,4 @@ npm run build
 npm run package
 ```
 
-Artifacts land in the `release/` directory and are automatically uploaded when you push a tag like `v1.0.0` thanks to the GitHub Actions workflow.
+Artifacts land in the `release/` directory and are automatically uploaded when you push a tag like `v2.0.0` thanks to the GitHub Actions workflow.

@@ -64,7 +64,7 @@ jobs:
           path: release
           merge-multiple: true
 
-  - name: Upload FocusFlow assets to GitHub release
+      - name: Upload FocusFlow assets to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: release/*

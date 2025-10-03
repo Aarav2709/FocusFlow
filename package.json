@@ -1,6 +1,6 @@
 {
   "name": "focusflow-desktop",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Desktop version of the FocusFlow study companion built with Electron, React, and Material-UI.",
   "author": "Aarav2709",
   "license": "MIT",
