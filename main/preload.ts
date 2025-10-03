@@ -16,30 +16,30 @@ import { contextBridge, ipcRenderer } from 'electron';
 // evaluate the preload bundle and fail to resolve the '@shared' alias. In that case
 // fall back to loading the compiled file in dist/shared/ipc.js directly.
 const IPC_FALLBACK_CHANNELS = {
-  NOTES_LIST: 'ypt:notes:list',
-  NOTES_CREATE: 'ypt:notes:create',
-  NOTES_UPDATE: 'ypt:notes:update',
-  NOTES_DELETE: 'ypt:notes:delete',
-  TASKS_LIST: 'ypt:tasks:list',
-  TASKS_CREATE: 'ypt:tasks:create',
-  TASKS_TOGGLE: 'ypt:tasks:toggle',
-  TASKS_DELETE: 'ypt:tasks:delete',
-  DECKS_LIST: 'ypt:decks:list',
-  DECKS_CREATE: 'ypt:decks:create',
-  DECKS_DELETE: 'ypt:decks:delete',
-  CARDS_LIST: 'ypt:cards:list',
-  CARDS_CREATE: 'ypt:cards:create',
-  CARDS_UPDATE: 'ypt:cards:update',
-  CARDS_DELETE: 'ypt:cards:delete',
-  PROGRESS_SUMMARY: 'ypt:progress:summary',
-  PROGRESS_SESSIONS: 'ypt:progress:sessions',
-  PROGRESS_LOG: 'ypt:progress:log',
-  PREFERENCES_GET: 'ypt:prefs:get',
-  PREFERENCES_UPDATE: 'ypt:prefs:update',
-  WINDOW_MINIMIZE: 'ypt:window:minimize',
-  WINDOW_MAXIMIZE: 'ypt:window:maximize',
-  WINDOW_CLOSE: 'ypt:window:close',
-  WINDOW_IS_MAXIMIZED: 'ypt:window:is-maximized'
+  NOTES_LIST: 'focusflow:notes:list',
+  NOTES_CREATE: 'focusflow:notes:create',
+  NOTES_UPDATE: 'focusflow:notes:update',
+  NOTES_DELETE: 'focusflow:notes:delete',
+  TASKS_LIST: 'focusflow:tasks:list',
+  TASKS_CREATE: 'focusflow:tasks:create',
+  TASKS_TOGGLE: 'focusflow:tasks:toggle',
+  TASKS_DELETE: 'focusflow:tasks:delete',
+  DECKS_LIST: 'focusflow:decks:list',
+  DECKS_CREATE: 'focusflow:decks:create',
+  DECKS_DELETE: 'focusflow:decks:delete',
+  CARDS_LIST: 'focusflow:cards:list',
+  CARDS_CREATE: 'focusflow:cards:create',
+  CARDS_UPDATE: 'focusflow:cards:update',
+  CARDS_DELETE: 'focusflow:cards:delete',
+  PROGRESS_SUMMARY: 'focusflow:progress:summary',
+  PROGRESS_SESSIONS: 'focusflow:progress:sessions',
+  PROGRESS_LOG: 'focusflow:progress:log',
+  PREFERENCES_GET: 'focusflow:prefs:get',
+  PREFERENCES_UPDATE: 'focusflow:prefs:update',
+  WINDOW_MINIMIZE: 'focusflow:window:minimize',
+  WINDOW_MAXIMIZE: 'focusflow:window:maximize',
+  WINDOW_CLOSE: 'focusflow:window:close',
+  WINDOW_IS_MAXIMIZED: 'focusflow:window:is-maximized'
 } as const;
 
 let IPC_CHANNELS: any = {};
@@ -132,7 +132,7 @@ const api: RendererApi = {
   }
 };
 
-contextBridge.exposeInMainWorld('ypt', api);
+contextBridge.exposeInMainWorld('focusflow', api);
 // Debug-only: indicate preload executed when running inside Electron
 try {
   if (typeof process !== 'undefined' && process.versions && process.versions.electron) {

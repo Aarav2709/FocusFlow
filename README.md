@@ -1,6 +1,6 @@
-<h1 align="center">YPT-PC 💻</h1>
+<h1 align="center">FocusFlow Desktop 💻</h1>
 
-<p align="center">The Yeolpumta study companion, reimagined for the desktop.</p>
+<p align="center">The FocusFlow study companion, reimagined for the desktop.</p>
 
 <div align="center">
 	<img src="screenshots/img1.png" alt="Home dashboard" width="260" />
@@ -20,7 +20,7 @@
 
 ## 🚀 Getting Started
 
-YPT-PC is structured as a TypeScript project-reference monorepo with three packages:
+FocusFlow is structured as a TypeScript project-reference monorepo with three packages:
 
 - `shared` — shared types and IPC channel constants
 - `main` — Electron main process

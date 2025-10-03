@@ -10,7 +10,7 @@ const TitleBar = () => {
 
   const syncMaximizedState = useCallback(async () => {
     try {
-      const result = await (window.ypt?.window?.isMaximized?.() ?? Promise.resolve(false));
+  const result = await (window.focusflow?.window?.isMaximized?.() ?? Promise.resolve(false));
       setIsMaximized(result);
     } catch (err) {
       // ignore when API is not available in fallback mode
@@ -27,16 +27,16 @@ const TitleBar = () => {
   }, [syncMaximizedState]);
 
   const handleMinimize = () => {
-    void (window.ypt?.window?.minimize?.() ?? Promise.resolve());
+  void (window.focusflow?.window?.minimize?.() ?? Promise.resolve());
   };
 
   const handleMaximize = () => {
-    void (window.ypt?.window?.maximize?.() ?? Promise.resolve());
+  void (window.focusflow?.window?.maximize?.() ?? Promise.resolve());
     void syncMaximizedState();
   };
 
   const handleClose = () => {
-    void (window.ypt?.window?.close?.() ?? Promise.resolve());
+  void (window.focusflow?.window?.close?.() ?? Promise.resolve());
   };
 
   return (
@@ -59,7 +59,7 @@ const TitleBar = () => {
       }}
     >
       <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: 1.2 }}>
-        Yeolpumta
+  FocusFlow
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, WebkitAppRegion: 'no-drag' }}>
         <IconButton size="small" onClick={handleMinimize} sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>

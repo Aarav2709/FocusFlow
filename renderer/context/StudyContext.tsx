@@ -30,7 +30,7 @@ type StudyStorage = {
 
 type TimerMode = { type: 'subject'; subjectId: string } | { type: 'break' } | null;
 
-const STORAGE_KEY = 'ypt:study-state:v1';
+const STORAGE_KEY = 'focusflow:study-state:v1';
 const DEFAULT_SUBJECTS: StudySubject[] = [
   { id: 'maths', name: 'Maths', color: '#ff6b6b', totalSeconds: 0, todos: [], createdAt: new Date().toISOString() },
   { id: 'science', name: 'Science', color: '#4dabf7', totalSeconds: 0, todos: [], createdAt: new Date().toISOString() }

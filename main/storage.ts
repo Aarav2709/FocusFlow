@@ -9,7 +9,7 @@ export class StorageService {
   private data: AppData;
 
   constructor(userDataPath: string) {
-    this.filePath = path.join(userDataPath, 'ypt-data.json');
+  this.filePath = path.join(userDataPath, 'focusflow-data.json');
     this.data = DEFAULT_DATA;
     this._load();
   }

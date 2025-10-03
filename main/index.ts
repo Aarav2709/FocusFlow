@@ -63,7 +63,7 @@ const bootstrap = async (): Promise<void> => {
     }
   });
 
-  const dbPath = path.join(app.getPath('userData'), 'ypt-desktop.db');
+  const dbPath = path.join(app.getPath('userData'), 'focusflow-desktop.db');
   try {
     database = new DatabaseService(dbPath);
     registerIpcHandlers(database, () => mainWindow);

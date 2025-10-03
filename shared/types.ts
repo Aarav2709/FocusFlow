@@ -158,7 +158,7 @@ export type RendererApi = {
 
 declare global {
   interface Window {
-    ypt?: RendererApi;
+    focusflow?: RendererApi;
   }
 }
 

@@ -8,11 +8,11 @@ import { useNavigate } from 'react-router-dom';
 
 type Subject = { id: string; name: string; color?: string };
 
-const SUBJECT_STORAGE_KEY = 'ypt:subjects:v1';
-const ELAPSED_STORAGE_KEY = 'ypt:elapsed:v1';
-const ELAPSED_DAY_KEY = 'ypt:elapsed:day';
-const SUBJECT_EVENT = 'ypt:subjects-changed';
-const ELAPSED_EVENT = 'ypt:elapsed-changed';
+const SUBJECT_STORAGE_KEY = 'focusflow:subjects:v1';
+const ELAPSED_STORAGE_KEY = 'focusflow:elapsed:v1';
+const ELAPSED_DAY_KEY = 'focusflow:elapsed:day';
+const SUBJECT_EVENT = 'focusflow:subjects-changed';
+const ELAPSED_EVENT = 'focusflow:elapsed-changed';
 
 const DEFAULT_SUBJECTS: Subject[] = [
   { id: '1', name: 'Maths', color: '#E53935' },
@@ -115,7 +115,7 @@ const TimerView: React.FC = () => {
   // persist elapsed map so Insights can read it
   useEffect(() => {
     try {
-      localStorage.setItem('ypt:elapsed:v1', JSON.stringify(elapsedMap));
+  localStorage.setItem('focusflow:elapsed:v1', JSON.stringify(elapsedMap));
       localStorage.setItem(ELAPSED_DAY_KEY, elapsedDay);
     } catch {}
   }, [elapsedMap, elapsedDay]);

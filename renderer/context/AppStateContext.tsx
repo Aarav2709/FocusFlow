@@ -20,7 +20,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   pomodoro: { focus: 25, shortBreak: 5, longBreak: 15 }
 };
 
-const PREFERENCES_STORAGE_KEY = 'ypt:preferences:v1';
+const PREFERENCES_STORAGE_KEY = 'focusflow:preferences:v1';
 
 const mergePreferences = (incoming?: AppPreferences | null): AppPreferences => ({
   theme: incoming?.theme ?? DEFAULT_PREFERENCES.theme,
@@ -56,7 +56,7 @@ const writeLocalPreferences = (prefs: AppPreferences) => {
 // Minimal API accessor with safe fallbacks
 const useApi = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const runtimeApi = (typeof window !== 'undefined' ? (window as any).ypt : undefined) as any | undefined;
+  const runtimeApi = (typeof window !== 'undefined' ? (window as any).focusflow : undefined) as any | undefined;
 
   return useMemo(() => {
     if (runtimeApi) return runtimeApi;

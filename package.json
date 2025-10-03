@@ -1,7 +1,7 @@
 {
-  "name": "yeolpumta-desktop",
+  "name": "focusflow-desktop",
   "version": "1.0.0",
-  "description": "Desktop version of the Yeolpumta study companion built with Electron, React, and Material-UI.",
+  "description": "Desktop version of the FocusFlow study companion built with Electron, React, and Material-UI.",
   "author": "Aarav2709",
   "license": "MIT",
   "type": "commonjs",
@@ -68,14 +68,14 @@
   },
   "postinstall": "node ./scripts/ensure-native.js || true",
   "build": {
-    "appId": "com.yeolpumta.desktop",
-    "productName": "Yeolpumta",
-    "artifactName": "Yeolpumta.${ext}",
+  "appId": "com.focusflow.desktop",
+  "productName": "FocusFlow",
+  "artifactName": "FocusFlow.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
-    "icon": "assets/yeolpumta.png",
+  "icon": "assets/focusflow.png",
     "files": [
       "dist/main/**/*",
       "dist/renderer/**/*",
@@ -88,7 +88,7 @@
     },
     "mac": {
       "category": "public.app-category.education",
-      "icon": "assets/yeolpumta.icns",
+  "icon": "assets/focusflow.icns",
       "target": [
         "dmg",
         "zip"
@@ -98,9 +98,9 @@
       "target": [
         "nsis"
       ],
-      "artifactName": "Yeolpumta.${ext}",
-      "icon": "assets/yeolpumta.ico",
-      "executableName": "Yeolpumta"
+  "artifactName": "FocusFlow.${ext}",
+  "icon": "assets/focusflow.ico",
+  "executableName": "FocusFlow"
     },
     "linux": {
       "target": [
@@ -108,7 +108,7 @@
         "zip"
       ],
       "category": "Education",
-      "icon": "assets/yeolpumta.png"
+  "icon": "assets/focusflow.png"
     }
   }
 }

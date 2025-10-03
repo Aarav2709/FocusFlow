@@ -4,10 +4,10 @@ import { useAppState } from '../context/AppStateContext';
 
 type Subject = { id: string; name: string; color?: string };
 
-const SUBJECT_STORAGE_KEY = 'ypt:subjects:v1';
-const ELAPSED_STORAGE_KEY = 'ypt:elapsed:v1';
-const SUBJECT_EVENT = 'ypt:subjects-changed';
-const ELAPSED_EVENT = 'ypt:elapsed-changed';
+const SUBJECT_STORAGE_KEY = 'focusflow:subjects:v1';
+const ELAPSED_STORAGE_KEY = 'focusflow:elapsed:v1';
+const SUBJECT_EVENT = 'focusflow:subjects-changed';
+const ELAPSED_EVENT = 'focusflow:elapsed-changed';
 
 const readSubjects = (): Subject[] => {
   if (typeof window === 'undefined') return [];

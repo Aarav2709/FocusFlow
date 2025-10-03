@@ -14,7 +14,7 @@ type ProfileContextValue = {
   resetProfile: () => void;
 };
 
-const STORAGE_KEY = 'ypt:profile:v1';
+const STORAGE_KEY = 'focusflow:profile:v1';
 
 const readProfile = (): UserProfile | null => {
   if (typeof window === 'undefined') return null;
