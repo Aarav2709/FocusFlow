@@ -1,49 +1,90 @@
 import React, { useMemo } from 'react';
-import { Box, Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Chip, Grid, Stack, Typography } from '@mui/material';
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis
 } from 'recharts';
-import { useStudy } from '../../context/StudyContext';
+import { useStudy, StudySubject } from '../../context/StudyContext';
+import { useProfile, DEFAULT_DAILY_TARGET_MINUTES } from '../../context/ProfileContext';
 
-const formatDuration = (seconds: number) => {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  if (hrs > 0) {
-    return `${hrs}h ${mins}m`;
-  }
-  return `${mins}m`;
-};
+const XP_PER_MINUTE = 12;
+
+type HistoryEntry = { focusSeconds: number; breakSeconds: number; perSubject: Record<string, number> };
+type StudyHistory = Record<string, HistoryEntry>;
+type DailySeriesPoint = { day: string; minutes: number };
+type SubjectDistributionItem = { name: string; seconds: number; minutes: number };
+type Metric = { key: string; label: string; value: string; caption: string };
 
 const toDateKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
+const computeLevel = (xp: number) => {
+  let level = 1;
+  let remainingXp = xp;
+  let xpForLevel = 240;
+
+  while (remainingXp >= xpForLevel) {
+    remainingXp -= xpForLevel;
+    level += 1;
+    xpForLevel = Math.round(240 + level * 180);
+  }
+
+  const progress = xpForLevel === 0 ? 1 : Math.min(1, remainingXp / xpForLevel);
+
+  return {
+    level,
+    xpIntoLevel: remainingXp,
+    xpForNext: xpForLevel,
+    progress
+  };
+};
+
+const tierFromLevel = (level: number) => {
+  if (level >= 12) return 'Supernova Strategist';
+  if (level >= 9) return 'Nebula Mentor';
+  if (level >= 6) return 'Aurora Scholar';
+  if (level >= 3) return 'Orbit Keeper';
+  return 'Focus Initiate';
+};
+
 const InsightsPanel: React.FC = () => {
-  const { subjects, totalFocusSeconds, breakSeconds, history } = useStudy();
+  const { subjects, totalFocusSeconds, history } = useStudy();
+  const { profile } = useProfile();
+  const dailyTargetMinutes = useMemo(
+    () => Math.max(profile?.dailyTargetMinutes ?? DEFAULT_DAILY_TARGET_MINUTES, 1),
+    [profile?.dailyTargetMinutes]
+  );
 
   const totalDaysWithData = useMemo(() => Math.max(1, Object.keys(history).length), [history]);
-  const totalSeconds = totalFocusSeconds + breakSeconds;
 
   const focusMinutes = useMemo(() => Math.round(totalFocusSeconds / 60), [totalFocusSeconds]);
-  const breakMinutes = useMemo(() => Math.round(breakSeconds / 60), [breakSeconds]);
   const dailyAverageMinutes = useMemo(
     () => Math.round(totalFocusSeconds / totalDaysWithData / 60),
     [totalFocusSeconds, totalDaysWithData]
   );
 
   const activeSubjects = useMemo(
-    () => subjects.filter((subject) => subject.totalSeconds > 0).length,
+    () => subjects.filter((subject: StudySubject) => subject.totalSeconds > 0).length,
     [subjects]
   );
+
+  const lifetimeFocusSeconds = useMemo(
+    () => Object.values(history as StudyHistory).reduce((acc: number, entry) => acc + entry.focusSeconds, 0),
+    [history]
+  );
+  const lifetimeMinutes = useMemo(
+    () => Math.max(Math.round(lifetimeFocusSeconds / 60), focusMinutes),
+    [lifetimeFocusSeconds, focusMinutes]
+  );
+  const totalXp = useMemo(() => lifetimeMinutes * XP_PER_MINUTE, [lifetimeMinutes]);
+  const { level, xpIntoLevel, xpForNext, progress: levelProgress } = useMemo(() => computeLevel(totalXp), [totalXp]);
+  const tier = useMemo(() => tierFromLevel(level), [level]);
+  const xpToNext = Math.max(xpForNext - xpIntoLevel, 0);
 
   const studyStreak = useMemo(() => {
     const keys = new Set(Object.keys(history));
@@ -60,15 +101,15 @@ const InsightsPanel: React.FC = () => {
     return streak;
   }, [history]);
 
-  const subjectDistribution = useMemo(
+  const subjectDistribution = useMemo<SubjectDistributionItem[]>(
     () =>
       subjects
-        .map((subject) => ({
+        .map((subject: StudySubject) => ({
           name: subject.name,
           seconds: subject.totalSeconds,
           minutes: Math.round(subject.totalSeconds / 60)
         }))
-        .sort((a, b) => b.seconds - a.seconds),
+        .sort((a: SubjectDistributionItem, b: SubjectDistributionItem) => b.seconds - a.seconds),
     [subjects]
   );
 
@@ -76,7 +117,7 @@ const InsightsPanel: React.FC = () => {
     const dates = Object.keys(history)
       .sort()
       .slice(-14);
-    if (!dates.length) return [] as { day: string; minutes: number }[];
+    if (!dates.length) return [] as DailySeriesPoint[];
     return dates.map((day) => {
       const entry = history[day];
       const minutes = Math.round((entry?.focusSeconds ?? 0) / 60);
@@ -84,31 +125,22 @@ const InsightsPanel: React.FC = () => {
     });
   }, [history]);
 
-  const pieData = useMemo(
-    () => [
-      { name: 'Focus', value: totalFocusSeconds, fill: '#64f4ac' },
-      { name: 'Break', value: breakSeconds, fill: '#9e9e9e' }
-    ],
-    [totalFocusSeconds, breakSeconds]
-  );
+  const hasSubjectData = subjectDistribution.some((subject: SubjectDistributionItem) => subject.seconds > 0);
+  const hasDailyData = dailySeries.some((point: DailySeriesPoint) => point.minutes > 0);
 
-  const hasSubjectData = subjectDistribution.some((subject) => subject.seconds > 0);
-  const hasPieData = totalSeconds > 0;
-  const hasDailyData = dailySeries.some((d) => d.minutes > 0);
-
-  const metrics = useMemo(
+  const metrics = useMemo<Metric[]>(
     () => [
       {
-        key: 'totalFocus',
-        label: 'TOTAL FOCUS',
-        value: formatDuration(totalFocusSeconds),
-        caption: `${focusMinutes} min overall`
+        key: 'seasonLevel',
+        label: 'SEASON LEVEL',
+        value: `Lv ${level}`,
+        caption: `${tier} • ${Math.round(levelProgress * 100)}% to Lv ${level + 1}`
       },
       {
-        key: 'breakTime',
-        label: 'BREAK TIME',
-        value: formatDuration(breakSeconds),
-        caption: `${breakMinutes} min logged`
+        key: 'lifetimeXp',
+        label: 'LIFETIME XP',
+        value: `${totalXp.toLocaleString()} XP`,
+        caption: `${xpToNext} to next unlock`
       },
       {
         key: 'dailyAverage',
@@ -118,35 +150,26 @@ const InsightsPanel: React.FC = () => {
       },
       {
         key: 'activeSubjects',
-        label: 'ACTIVE SUBJECTS',
+        label: 'ACTIVE LANES',
         value: `${activeSubjects}`,
         caption: `Streak · ${studyStreak} day${studyStreak === 1 ? '' : 's'}`
       }
     ],
-    [
-      totalFocusSeconds,
-      focusMinutes,
-      breakSeconds,
-      breakMinutes,
-      dailyAverageMinutes,
-      totalDaysWithData,
-      activeSubjects,
-      studyStreak
-    ]
+    [level, tier, levelProgress, totalXp, xpToNext, dailyAverageMinutes, totalDaysWithData, activeSubjects, studyStreak]
   );
 
   return (
     <Stack spacing={3}>
       <Grid container spacing={2}>
-        {metrics.map((metric) => (
+        {metrics.map((metric: Metric) => (
           <Grid key={metric.key} item xs={12} sm={6} md={3}>
             <Box sx={{ width: '100%', minHeight: { xs: 130, sm: 150 } }}>
               <Card
                 sx={{
                   height: '100%',
                   display: 'flex',
-                  bgcolor: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.05)'
+                  border: '1px solid rgba(122,108,255,0.22)',
+                  background: 'linear-gradient(155deg, rgba(12,16,42,0.82), rgba(19,24,58,0.62))'
                 }}
               >
                 <CardContent
@@ -180,19 +203,22 @@ const InsightsPanel: React.FC = () => {
       </Grid>
 
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <Card>
-            <CardContent sx={{ height: 260, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="overline" color="text.secondary">
-                DAILY FOCUS (LAST 14 DAYS)
-              </Typography>
+            <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="overline" color="text.secondary">
+                  DAILY FOCUS (LAST 14 DAYS)
+                </Typography>
+                <Chip size="small" label={`Best: ${Math.max(...dailySeries.map((d: DailySeriesPoint) => d.minutes), 0)} min`} color="secondary" />
+              </Stack>
               <Box sx={{ flex: 1 }}>
                 {hasDailyData ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dailySeries}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="day" stroke="#bdbdbd" tickFormatter={(value: string) => value.slice(5)} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#bdbdbd" tickFormatter={(value) => `${value}m`} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <YAxis stroke="#bdbdbd" tickFormatter={(value: number) => `${value}m`} tickLine={false} axisLine={false} allowDecimals={false} />
                       <Tooltip
                         cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                         contentStyle={{
@@ -218,7 +244,7 @@ const InsightsPanel: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={7}>
+        <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography variant="overline" color="text.secondary">
@@ -230,7 +256,7 @@ const InsightsPanel: React.FC = () => {
                     <BarChart data={subjectDistribution}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="name" stroke="#bdbdbd" tickLine={false} axisLine={false} />
-                      <YAxis stroke="#bdbdbd" tickFormatter={(value) => `${value}m`} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <YAxis stroke="#bdbdbd" tickFormatter={(value: number) => `${value}m`} tickLine={false} axisLine={false} allowDecimals={false} />
                       <Tooltip
                         cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                         contentStyle={{
@@ -249,62 +275,6 @@ const InsightsPanel: React.FC = () => {
                   <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
                     <Typography variant="body2" color="text.secondary" align="center">
                       Track time for subjects to see distribution insights.
-                    </Typography>
-                  </Stack>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent sx={{ height: { xs: 320, md: 380 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="overline" color="text.secondary">
-                FOCUS VS BREAK
-              </Typography>
-              <Box sx={{ flex: 1 }}>
-                {hasPieData ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={110}
-                        paddingAngle={4}
-                        stroke="none"
-                      >
-                        {pieData.map((entry) => (
-                          <Cell key={entry.name} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                        contentStyle={{
-                          backgroundColor: '#111',
-                          borderRadius: 0,
-                          border: '1px solid rgba(255,255,255,0.12)'
-                        }}
-                        itemStyle={{ color: '#ffffff' }}
-                        labelStyle={{ color: '#ffffff' }}
-                        formatter={(value: number, name: string) => [formatDuration(Number(value)), name]}
-                        labelFormatter={() => ''}
-                      />
-                      <Legend
-                        verticalAlign="bottom"
-                        iconType="circle"
-                        wrapperStyle={{ color: '#e0e0e0', paddingTop: 12 }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      Start a focus or break session to populate this chart.
                     </Typography>
                   </Stack>
                 )}

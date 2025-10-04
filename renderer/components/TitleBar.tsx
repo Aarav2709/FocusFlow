@@ -47,31 +47,73 @@ const TitleBar = () => {
       sx={{
         height: 56,
         px: 2.5,
-        backgroundColor: 'rgba(8, 8, 8, 0.92)',
-        backdropFilter: 'blur(10px)',
+        background: 'linear-gradient(120deg, rgba(122,108,255,0.65) 0%, rgba(67,255,210,0.4) 50%, rgba(255,140,201,0.45) 100%)',
+        backdropFilter: 'blur(16px)',
         color: 'common.white',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        position: 'sticky',
+        borderBottom: '1px solid rgba(255,255,255,0.12)',
+        position: 'fixed',
         top: 0,
-        zIndex: (theme) => theme.zIndex.appBar,
+        left: 0,
+        right: 0,
+        width: '100%',
+        zIndex: (theme) => theme.zIndex.appBar + 1,
         WebkitAppRegion: 'drag',
         userSelect: 'none'
       }}
     >
-      <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: 1.2 }}>
-  FocusFlow
+      <Typography
+        variant="h6"
+        fontWeight={700}
+        sx={{
+          letterSpacing: 2.5,
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.9)',
+          fontFamily: '"Space Grotesk", "Plus Jakarta Sans", "Segoe UI", sans-serif'
+        }}
+      >
+        FocusFlow
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, WebkitAppRegion: 'no-drag' }}>
-        <IconButton size="small" onClick={handleMinimize} sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, WebkitAppRegion: 'no-drag' }}>
+        <IconButton
+          size="small"
+          onClick={handleMinimize}
+          sx={{
+            color: 'common.white',
+            background: 'linear-gradient(135deg, rgba(7,9,35,0.4), rgba(27,31,62,0.6))',
+            border: '1px solid rgba(255,255,255,0.12)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(67,255,210,0.25))'
+            }
+          }}
+        >
           <MinimizeIcon fontSize="inherit" />
         </IconButton>
-        <IconButton size="small" onClick={handleMaximize} sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
+        <IconButton
+          size="small"
+          onClick={handleMaximize}
+          sx={{
+            color: 'common.white',
+            background: 'linear-gradient(135deg, rgba(7,9,35,0.4), rgba(27,31,62,0.6))',
+            border: '1px solid rgba(255,255,255,0.12)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(122,108,255,0.28))'
+            }
+          }}
+        >
           {isMaximized ? <FilterNoneIcon fontSize="inherit" /> : <CropSquareIcon fontSize="inherit" />}
         </IconButton>
         <IconButton
           size="small"
           onClick={handleClose}
-          sx={{ color: 'grey.200', '&:hover': { bgcolor: 'rgba(244,67,54,0.2)', color: 'error.light' } }}
+          sx={{
+            color: 'common.white',
+            background: 'linear-gradient(135deg, rgba(7,9,35,0.4), rgba(27,31,62,0.6))',
+            border: '1px solid rgba(255,255,255,0.12)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, rgba(244,67,54,0.3), rgba(244,67,54,0.5))',
+              borderColor: 'rgba(244,67,54,0.55)'
+            }
+          }}
         >
           <CloseIcon fontSize="inherit" />
         </IconButton>

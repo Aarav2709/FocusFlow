@@ -5,25 +5,44 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
+  LinearProgress,
   Menu,
   MenuItem,
   Stack,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import TimerIcon from '@mui/icons-material/TimerOutlined';
-import NightlightIcon from '@mui/icons-material/NightlightRound';
 import ClearIcon from '@mui/icons-material/Clear';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import BoltIcon from '@mui/icons-material/Bolt';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useStudy, StudySubject, SubjectTodo } from '../../context/StudyContext';
+import { useProfile, DEFAULT_DAILY_TARGET_MINUTES } from '../../context/ProfileContext';
+import {
+  XP_PER_MINUTE,
+  computeLevel,
+  tierFromLevel,
+  computeStudyStreak,
+  getTodayKey,
+  summarizeSubjects,
+  StudyHistory
+} from '../../utils/gamification';
 
 const formatDuration = (seconds: number) => {
   const hrs = Math.floor(seconds / 3600);
@@ -37,6 +56,49 @@ type SubjectMenuState = {
   subject: StudySubject | null;
 };
 
+type SubjectSummary = {
+  id: string;
+  name: string;
+  color: string;
+  todayMinutes: number;
+  lifetimeMinutes: number;
+};
+
+type MetricCardProps = {
+  icon: React.ReactNode;
+  label: string;
+  primary: string;
+  secondary: string;
+};
+
+const MetricCard = ({ icon, label, primary, secondary }: MetricCardProps) => (
+  <Box
+    sx={{
+      flex: 1,
+      borderRadius: 0,
+      px: 2.25,
+      py: 1.75,
+      border: '1px solid rgba(255,255,255,0.12)',
+      background: 'rgba(10,14,40,0.55)'
+    }}
+  >
+    <Stack spacing={1}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {icon}
+        <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 1 }}>
+          {label.toUpperCase()}
+        </Typography>
+      </Stack>
+      <Typography variant="h6" fontWeight={700}>
+        {primary}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {secondary}
+      </Typography>
+    </Stack>
+  </Box>
+);
+
 const TimerPanel: React.FC = () => {
   const {
     subjects,
@@ -49,7 +111,8 @@ const TimerPanel: React.FC = () => {
     isBreakActive,
     toggleSubject,
     pauseTimer,
-    resetSubject,
+  startBreak,
+  resetSubject,
     addSubject,
     updateSubject,
     removeSubject,
@@ -64,25 +127,60 @@ const TimerPanel: React.FC = () => {
   const [editColor, setEditColor] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [todoDrafts, setTodoDrafts] = useState<Record<string, string>>({});
-  const addButtonLabel = 'Add';
-
-  const now = useMemo(() => new Date(), []);
+  const { profile } = useProfile();
+  const dailyTargetMinutes = useMemo(
+    () => Math.max(profile?.dailyTargetMinutes ?? DEFAULT_DAILY_TARGET_MINUTES, 1),
+    [profile?.dailyTargetMinutes]
+  );
 
   const activeSubject = activeSubjectId ? subjects.find((subject) => subject.id === activeSubjectId) ?? null : null;
   const lastSubject = lastSubjectId ? subjects.find((subject) => subject.id === lastSubjectId) ?? null : null;
 
   const primaryTime = useMemo(() => formatDuration(totalFocusSeconds), [totalFocusSeconds]);
-  const breakSecondsToday = useMemo(() => {
-    const now = new Date();
-    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    return history[key]?.breakSeconds ?? breakSeconds;
-  }, [history, breakSeconds]);
 
-  const breakTimeDisplay = useMemo(() => formatDuration(breakSecondsToday), [breakSecondsToday]);
+  const todayKey = getTodayKey();
+  const todayHistory = history[todayKey];
+
+  const todayFocusMinutes = useMemo(() => {
+    if (todayHistory) {
+      return Math.round(todayHistory.focusSeconds / 60);
+    }
+    return Math.round(totalFocusSeconds / 60);
+  }, [todayHistory, totalFocusSeconds]);
+
+  const overallDailyProgress = useMemo(
+    () => (dailyTargetMinutes > 0 ? Math.min(1, todayFocusMinutes / dailyTargetMinutes) : 0),
+    [todayFocusMinutes, dailyTargetMinutes]
+  );
+
+  const lifetimeFocusSeconds = useMemo(() => {
+    const recorded = Object.values(history as StudyHistory).reduce((acc, entry) => acc + entry.focusSeconds, 0);
+    return Math.max(recorded, totalFocusSeconds);
+  }, [history, totalFocusSeconds]);
+
+  const lifetimeMinutes = useMemo(() => Math.max(Math.round(lifetimeFocusSeconds / 60), Math.round(totalFocusSeconds / 60)), [
+    lifetimeFocusSeconds,
+    totalFocusSeconds
+  ]);
+
+  const totalXp = useMemo(() => lifetimeMinutes * XP_PER_MINUTE, [lifetimeMinutes]);
+  const { level, xpIntoLevel, xpForNext, progress: levelProgress } = useMemo(() => computeLevel(totalXp), [totalXp]);
+  const xpToNextLevel = Math.max(xpForNext - xpIntoLevel, 0);
+  const tier = useMemo(() => tierFromLevel(level), [level]);
+  const studyStreak = useMemo(() => computeStudyStreak(history as StudyHistory), [history]);
+
+  const subjectSummaries = useMemo(
+    () => summarizeSubjects(subjects, history as StudyHistory, todayKey),
+    [subjects, history, todayKey]
+  );
+  const subjectSummaryMap = useMemo(
+    () => new Map(subjectSummaries.map((summary: SubjectSummary) => [summary.id, summary])),
+    [subjectSummaries]
+  );
 
   const statusText = useMemo(() => {
     if (isBreakActive) {
-      return `On break • ${breakTimeDisplay}`;
+      return lastSubject ? `Mindful break • ${lastSubject.name} on standby` : 'Mindful break in progress';
     }
     if (activeSubject) {
       return `Focusing on ${activeSubject.name}`;
@@ -90,8 +188,18 @@ const TimerPanel: React.FC = () => {
     if (lastSubject) {
       return `Ready to resume ${lastSubject.name}`;
     }
-    return 'Idle';
-  }, [isBreakActive, lastSubject, breakTimeDisplay, activeSubject]);
+    return 'Awaiting your next mission';
+  }, [isBreakActive, activeSubject, lastSubject]);
+
+  const dateString = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      }).format(new Date()),
+    []
+  );
 
   const handleAddSubject = () => {
     if (!newSubject.trim()) return;
@@ -115,7 +223,10 @@ const TimerPanel: React.FC = () => {
 
   const handleEditSave = () => {
     if (!menuState.subject) return;
-    updateSubject(menuState.subject.id, { name: editName.trim() || menuState.subject.name, color: editColor.trim() });
+    updateSubject(menuState.subject.id, {
+      name: editName.trim() || menuState.subject.name,
+      color: editColor.trim() || menuState.subject.color
+    });
     setEditDialogOpen(false);
   };
 
@@ -136,226 +247,320 @@ const TimerPanel: React.FC = () => {
     setTodoDrafts((prev) => ({ ...prev, [subjectId]: '' }));
   };
 
-  const renderSubjectControls = (subject: StudySubject) => {
-    const isActive = activeSubjectId === subject.id;
-    const handlePrimaryClick = () => {
-      if (isActive && isRunning) {
-        pauseTimer();
-      } else {
-        toggleSubject(subject.id);
-      }
-    };
-    return (
-      <Stack direction="row" spacing={1} alignItems="center">
-        <IconButton
-          size="small"
-          onClick={handlePrimaryClick}
-          sx={{
-            bgcolor: isActive ? subject.color : 'transparent',
-            color: isActive ? '#000' : subject.color,
-            border: `1px solid ${subject.color}`,
-            '&:hover': {
-              bgcolor: subject.color,
-              color: '#000'
-            },
-            width: 36,
-            height: 36
-          }}
-        >
-          {isActive && isRunning ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
-        </IconButton>
-        <IconButton size="small" onClick={() => resetSubject(subject.id)} sx={{ color: 'text.secondary' }}>
-          <RestartAltIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={(event) => openMenu(event, subject)} sx={{ color: 'text.secondary' }}>
-          <MoreVertIcon fontSize="small" />
-        </IconButton>
-      </Stack>
-    );
-  };
-
-  const dateString = now.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  });
-
   return (
-    <Stack spacing={1}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{
-          position: 'sticky',
-          top: 44,
-          zIndex: (theme) => theme.zIndex.appBar - 1,
-          py: 0.25,
-          bgcolor: 'background.default',
-          mb: 0.5
-        }}
-      >
-        <IconButton sx={{ color: 'text.secondary' }}>
-          <TimerIcon />
-        </IconButton>
-        <Typography variant="subtitle1" color="text.secondary">
-          {dateString}
-        </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <NightlightIcon fontSize="small" color="disabled" />
-          <Typography variant="body2" color="text.secondary">
-            D-0
-          </Typography>
-        </Stack>
-      </Stack>
+    <Stack spacing={3}>
+      <Box sx={{ position: 'sticky', top: 0, zIndex: (theme) => theme.zIndex.appBar - 1 }}>
+        <Card sx={{ position: 'relative', overflow: 'hidden', borderRadius: 0, border: '1px solid rgba(122,108,255,0.28)' }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'radial-gradient(circle at 20% 20%, rgba(122,108,255,0.32), transparent 55%), radial-gradient(circle at 80% 0%, rgba(67,255,210,0.28), transparent 50%)',
+              opacity: 0.85,
+              pointerEvents: 'none'
+            }}
+          />
+          <CardContent sx={{ position: 'relative', zIndex: 1, p: { xs: 3, md: 4 } }}>
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              <Stack spacing={1.5} alignItems="center">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <RocketLaunchIcon fontSize="small" />
+                  <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1.5 }}>
+                    FOCUS REACTOR
+                  </Typography>
+                  <Chip size="small" label={dateString} variant="outlined" sx={{ borderColor: 'rgba(255,255,255,0.35)' }} />
+                </Stack>
+                <Typography
+                  variant="h2"
+                  sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 34, sm: 42, md: 50 }, lineHeight: 1 }}
+                >
+                  {primaryTime}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  {statusText}
+                </Typography>
+                <Stack spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      Level {level}
+                    </Typography>
+                    <Chip size="small" color="secondary" label={tier} sx={{ fontWeight: 600 }} />
+                  </Stack>
+                  <LinearProgress variant="determinate" value={Math.round(levelProgress * 100)} sx={{ width: '100%', maxWidth: 320 }} />
+                  <Typography variant="caption" color="text.secondary">
+                    {xpToNextLevel} XP to level {level + 1} • {lifetimeMinutes} min lifetime focus
+                  </Typography>
+                </Stack>
+              </Stack>
 
-      <Card sx={{ mt: 0 }}>
-        <CardContent sx={{ py: 5, px: 2 }}>
-          <Stack spacing={0.5} alignItems="center">
-            <Typography
-              variant="h2"
-              sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 32, sm: 44, md: 52 }, lineHeight: 1.05, textAlign: 'center', width: '100%' }}
+              <Divider flexItem sx={{ borderColor: 'rgba(255,255,255,0.1)', width: '100%' }} />
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: '100%' }}>
+                <MetricCard
+                  icon={<BoltIcon fontSize="small" />}
+                  label="Focus today"
+                  primary={`${todayFocusMinutes} min`}
+                  secondary={`${Math.round(overallDailyProgress * 100)}% of ${dailyTargetMinutes} min target`}
+                />
+                <MetricCard
+                  icon={<AccessTimeIcon fontSize="small" />}
+                  label="Lifetime"
+                  primary={`${lifetimeMinutes} min`}
+                  secondary="Total focus logged"
+                />
+                <MetricCard
+                  icon={<MilitaryTechIcon fontSize="small" />}
+                  label="Streak"
+                  primary={`${studyStreak} day${studyStreak === 1 ? '' : 's'}`}
+                  secondary="Keep the orbit alive"
+                />
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
+
+      <Card sx={{ borderRadius: 0, border: '1px solid rgba(255,255,255,0.08)' }}>
+        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+          <Stack spacing={2.5}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <BoltIcon fontSize="small" />
+              <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1.5 }}>
+                FOCUS LANES
+              </Typography>
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 1 }}
             >
-              {primaryTime}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
-              {statusText}
-            </Typography>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent sx={{ p: 2 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6" fontWeight={600}>
-              Subjects
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={0.75}>
               <TextField
                 fullWidth
-                placeholder="New subject"
+                placeholder="Name a new focus lane"
                 value={newSubject}
-                onChange={(event) => setNewSubject(event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewSubject(event.target.value)}
                 size="small"
               />
-              <Button variant="contained" color="inherit" onClick={handleAddSubject}>
-                Add
+              <Button
+                variant="contained"
+                color="inherit"
+                onClick={handleAddSubject}
+                size="small"
+                sx={{ whiteSpace: 'nowrap', fontSize: 13, px: 2.5 }}
+              >
+                Add lane
               </Button>
             </Stack>
 
-            <Stack spacing={1}>
-              {subjects.map((subject) => (
-                <React.Fragment key={subject.id}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      px: 1.5,
-                      py: 1,
-                      bgcolor: 'rgba(255,255,255,0.04)'
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: subject.color, color: '#000', fontSize: 14 }}>
-                        {subject.name.slice(0, 2).toUpperCase()}
-                      </Avatar>
-                      <Stack>
-                        <Typography variant="body1" fontWeight={600}>
-                          {subject.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDuration(subject.totalSeconds)}
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                    {renderSubjectControls(subject)}
-                  </Box>
-                  <Stack spacing={0.75} sx={{ px: 4, py: 1, bgcolor: 'rgba(255,255,255,0.02)' }}>
-                  {subject.todos.length ? (
-                    subject.todos.map((todo: SubjectTodo) => (
-                      <Box
-                        key={todo.id}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          onClick={() => toggleTodo(subject.id, todo.id)}
-                          sx={{
-                            cursor: 'pointer',
-                            textDecoration: todo.completed ? 'line-through' : 'none',
-                            color: todo.completed ? 'text.disabled' : 'text.primary'
-                          }}
-                        >
-                          {todo.text}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => removeTodo(subject.id, todo.id)}
-                          sx={{ color: 'text.secondary' }}
-                        >
-                          <ClearIcon fontSize="inherit" />
-                        </IconButton>
-                      </Box>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No todos yet. Add one below.
-                    </Typography>
-                  )}
-                  <Stack direction="row" spacing={1}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      placeholder="Add todo"
-                      value={todoDrafts[subject.id] ?? ''}
-                      onChange={(event) => handleTodoDraftChange(subject.id, event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault();
-                          submitTodo(subject.id);
-                        }
+            <Stack spacing={2}>
+              {subjects.length ? (
+                subjects.map((subject: StudySubject) => {
+                  const summary = subjectSummaryMap.get(subject.id);
+                  const todayMinutes = summary?.todayMinutes ?? Math.round(subject.totalSeconds / 60);
+                  const lifetimeMinutesForSubject = summary?.lifetimeMinutes ?? todayMinutes;
+                  const progress = Math.min(1, todayMinutes / dailyTargetMinutes);
+                  const isActive = activeSubjectId === subject.id && !isBreakActive;
+                  const isRecentBreakFocus = isBreakActive && lastSubjectId === subject.id;
+                  const highlight = isActive || isRecentBreakFocus;
+                  const showPause = isActive && isRunning && !isBreakActive;
+                  const canStartBreak = isActive && !isBreakActive;
+                  return (
+                    <Box
+                      key={subject.id}
+                      sx={{
+                        borderRadius: 0,
+                        p: 2.5,
+                        border: `1px solid ${alpha(subject.color, 0.35)}`,
+                        background: alpha(subject.color, highlight ? 0.35 : 0.15)
                       }}
-                    />
-                    <Button variant="contained" color="inherit" onClick={() => submitTodo(subject.id)}>
-                      {addButtonLabel}
-                    </Button>
-                  </Stack>
-                  </Stack>
-                </React.Fragment>
-              ))}
+                    >
+                      <Stack spacing={2}>
+                        <Stack direction="row" justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Avatar sx={{ width: 42, height: 42, bgcolor: subject.color, color: '#050217', fontWeight: 700 }}>
+                              {subject.name.slice(0, 2).toUpperCase()}
+                            </Avatar>
+                            <Stack spacing={0.5}>
+                              <Typography variant="subtitle1" fontWeight={700}>
+                                {subject.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {todayMinutes} min today • {lifetimeMinutesForSubject} min lifetime
+                              </Typography>
+                            </Stack>
+                          </Stack>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Tooltip title={showPause ? 'Pause lane' : isRecentBreakFocus ? 'Resume lane' : 'Launch lane'}>
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  if (showPause) {
+                                    pauseTimer();
+                                    return;
+                                  }
+                                  toggleSubject(subject.id);
+                                }}
+                                sx={{
+                                  bgcolor: 'rgba(255,255,255,0.12)',
+                                  color: 'common.white'
+                                }}
+                              >
+                                {showPause ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                              </IconButton>
+                            </Tooltip>
+                            {canStartBreak ? (
+                              <Tooltip title="Mindful break">
+                                <IconButton
+                                  size="small"
+                                  onClick={startBreak}
+                                  sx={{
+                                    bgcolor: 'rgba(255,255,255,0.08)',
+                                    color: 'common.white'
+                                  }}
+                                >
+                                  <AccessTimeIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            ) : null}
+                            <Tooltip title="Reset lane">
+                              <IconButton size="small" onClick={() => resetSubject(subject.id)}>
+                                <RestartAltIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="More actions">
+                              <IconButton size="small" onClick={(event: React.MouseEvent<HTMLButtonElement>) => openMenu(event, subject)}>
+                                <MoreVertIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </Stack>
+                        <Stack spacing={0.75}>
+                          <LinearProgress variant="determinate" value={Math.round(progress * 100)} />
+                          <Typography variant="caption" color="text.secondary">
+                            {Math.round(progress * 100)}% of your {dailyTargetMinutes} min target
+                          </Typography>
+                        </Stack>
+                        <Stack spacing={1.25}>
+                          {subject.todos.length ? (
+                            subject.todos.map((todo: SubjectTodo) => {
+                              const completed = todo.completed;
+                              return (
+                                <Box
+                                  key={todo.id}
+                                  onClick={() => toggleTodo(subject.id, todo.id)}
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    px: 1.5,
+                                    py: 1,
+                                    borderRadius: 0,
+                                    cursor: 'pointer',
+                                    border: completed
+                                      ? '1px solid rgba(67,255,210,0.45)'
+                                      : '1px solid rgba(255,255,255,0.12)',
+                                    background: completed ? 'rgba(67,255,210,0.15)' : 'rgba(12,16,34,0.6)'
+                                  }}
+                                >
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    {completed ? (
+                                      <CheckCircleIcon fontSize="small" color="secondary" />
+                                    ) : (
+                                      <CheckCircleOutlineIcon fontSize="small" sx={{ color: 'rgba(255,255,255,0.5)' }} />
+                                    )}
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        textDecoration: completed ? 'line-through' : 'none',
+                                        color: completed ? 'text.disabled' : 'text.primary'
+                                      }}
+                                    >
+                                      {todo.text}
+                                    </Typography>
+                                  </Stack>
+                                  <IconButton size="small" onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                                    event.stopPropagation();
+                                    removeTodo(subject.id, todo.id);
+                                  }}>
+                                    <ClearIcon fontSize="inherit" />
+                                  </IconButton>
+                                </Box>
+                              );
+                            })
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No quests logged yet. Add one below to track progress.
+                            </Typography>
+                          )}
+                          <Stack direction="row" spacing={1}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              placeholder="Add a quest for this lane"
+                              value={todoDrafts[subject.id] ?? ''}
+                              onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleTodoDraftChange(subject.id, event.target.value)}
+                              onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                                if (event.key === 'Enter') {
+                                  event.preventDefault();
+                                  submitTodo(subject.id);
+                                }
+                              }}
+                            />
+                            <Button variant="contained" color="inherit" onClick={() => submitTodo(subject.id)}>
+                              Add
+                            </Button>
+                          </Stack>
+                        </Stack>
+                      </Stack>
+                    </Box>
+                  );
+                })
+              ) : (
+                <Stack spacing={1} alignItems="center" py={4}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    Craft your first focus lane
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" align="center" sx={{ maxWidth: 320 }}>
+                    Organize sessions by subjects or goals. Each lane can have its own quests and streaks.
+                  </Typography>
+                </Stack>
+              )}
             </Stack>
           </Stack>
         </CardContent>
       </Card>
 
       <Menu anchorEl={menuState.anchor} open={Boolean(menuState.anchor)} onClose={closeMenu}>
-        <MenuItem onClick={openEditDialog}>Edit</MenuItem>
-        <MenuItem onClick={handleDeleteSubject}>Delete</MenuItem>
+        <MenuItem onClick={openEditDialog}>Edit lane</MenuItem>
+        <MenuItem onClick={handleDeleteSubject}>Archive lane</MenuItem>
       </Menu>
 
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Edit subject</DialogTitle>
+        <DialogTitle>Update focus lane</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Name" value={editName} onChange={(event) => setEditName(event.target.value)} />
+            <TextField
+              label="Name"
+              value={editName}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEditName(event.target.value)}
+              autoFocus
+            />
             <TextField
               label="Accent color"
-              helperText="Use hex value e.g. #ff6b6b"
+              helperText="Use a hex value, e.g. #7a6cff"
               value={editColor}
-              onChange={(event) => setEditColor(event.target.value)}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEditColor(event.target.value)}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setEditDialogOpen(false)} color="inherit">
+            Cancel
+          </Button>
           <Button variant="contained" color="inherit" onClick={handleEditSave}>
-            Save
+            Save changes
           </Button>
         </DialogActions>
       </Dialog>

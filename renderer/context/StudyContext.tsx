@@ -109,9 +109,9 @@ export interface StudyContextValue {
   isRunning: boolean;
   startSubject: (subjectId: string) => void;
   pauseTimer: () => void;
+  startBreak: () => void;
   toggleSubject: (subjectId: string) => void;
   resetSubject: (subjectId: string) => void;
-  resetAll: () => void;
   addSubject: (name: string, color?: string) => void;
   updateSubject: (subjectId: string, updates: Partial<Pick<StudySubject, 'name' | 'color'>>) => void;
   removeSubject: (subjectId: string) => void;
@@ -241,12 +241,20 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const pauseTimer = useCallback(() => {
     setMode((current) => {
       if (current?.type === 'break') {
-        const previous = previousSubjectRef.current;
-        if (previous) {
-          setLastSubjectId(previous);
-          return { type: 'subject', subjectId: previous };
-        }
         return null;
+      }
+      if (current?.type === 'subject') {
+        previousSubjectRef.current = current.subjectId;
+        setLastSubjectId(current.subjectId);
+      }
+      return null;
+    });
+  }, []);
+
+  const startBreak = useCallback(() => {
+    setMode((current) => {
+      if (current?.type === 'break') {
+        return current;
       }
       if (current?.type === 'subject') {
         previousSubjectRef.current = current.subjectId;
@@ -287,17 +295,6 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return current;
     });
-  }, []);
-
-  const resetAll = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      subjects: prev.subjects.map((subject) => ({ ...subject, totalSeconds: 0 })),
-      breakSeconds: 0
-    }));
-    previousSubjectRef.current = null;
-    setLastSubjectId(null);
-    setMode(null);
   }, []);
 
   const addSubject = useCallback((name: string, color?: string) => {
@@ -408,16 +405,16 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     isRunning: mode !== null,
     startSubject,
     pauseTimer,
+    startBreak,
     toggleSubject,
     resetSubject,
-    resetAll,
     addSubject,
     updateSubject,
     removeSubject,
     addTodo,
     toggleTodo,
     removeTodo
-  }), [state, totalFocusSeconds, mode, lastSubjectId, startSubject, pauseTimer, toggleSubject, resetSubject, resetAll, addSubject, updateSubject, removeSubject, addTodo, toggleTodo, removeTodo]);
+  }), [state, totalFocusSeconds, mode, lastSubjectId, startSubject, pauseTimer, startBreak, toggleSubject, resetSubject, addSubject, updateSubject, removeSubject, addTodo, toggleTodo, removeTodo]);
 
   return <StudyContext.Provider value={value}>{children}</StudyContext.Provider>;
 };

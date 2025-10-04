@@ -22,6 +22,7 @@ const createWindow = async (): Promise<void> => {
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0f0f13' : '#ffffff',
     titleBarStyle: 'hidden',
     trafficLightPosition: { x: 16, y: 14 },
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -31,6 +32,16 @@ const createWindow = async (): Promise<void> => {
   });
 
   mainWindow.setMenuBarVisibility(false);
+
+  const revealWindow = () => {
+    if (!mainWindow) return;
+    if (!mainWindow.isMaximized()) {
+      mainWindow.maximize();
+    }
+    mainWindow.show();
+  };
+
+  mainWindow.once('ready-to-show', revealWindow);
 
   if (isDev) {
     await mainWindow.loadURL(devServerUrl);

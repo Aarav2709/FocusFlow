@@ -1,9 +1,12 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
+export const DEFAULT_DAILY_TARGET_MINUTES = 90;
+
 export type UserProfile = {
   nickname: string;
   country: string;
   status?: string;
+  dailyTargetMinutes?: number;
 };
 
 type ProfileContextValue = {
@@ -16,6 +19,23 @@ type ProfileContextValue = {
 
 const STORAGE_KEY = 'focusflow:profile:v1';
 
+const sanitizeDailyTarget = (value?: number): number => {
+  if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) {
+    return DEFAULT_DAILY_TARGET_MINUTES;
+  }
+  return Math.min(1440, Math.round(value));
+};
+
+const applyDefaults = (profile: UserProfile | null): UserProfile | null => {
+  if (!profile) return null;
+  return {
+    nickname: profile.nickname,
+    country: profile.country,
+    status: profile.status ?? '',
+    dailyTargetMinutes: sanitizeDailyTarget(profile.dailyTargetMinutes)
+  };
+};
+
 const readProfile = (): UserProfile | null => {
   if (typeof window === 'undefined') return null;
   try {
@@ -23,7 +43,7 @@ const readProfile = (): UserProfile | null => {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as UserProfile;
     if (!parsed?.nickname || !parsed?.country) return null;
-    return parsed;
+    return applyDefaults(parsed);
   } catch (err) {
     console.warn('[ProfileContext] failed to read profile', err);
     return null;
@@ -50,14 +70,25 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [ready] = useState(true);
 
   const saveProfile = useCallback((next: UserProfile) => {
-    setProfile(next);
-    writeProfile(next);
+    const normalized = applyDefaults(next);
+    if (!normalized) return;
+    setProfile(normalized);
+    writeProfile(normalized);
   }, []);
 
   const updateProfile = useCallback(
     (updates: Partial<UserProfile>) => {
       setProfile((prev) => {
-        const next = { ...(prev ?? { nickname: '', country: '', status: '' }), ...updates } as UserProfile;
+        const base: UserProfile = prev ?? { nickname: '', country: '', status: '', dailyTargetMinutes: DEFAULT_DAILY_TARGET_MINUTES };
+        const next = applyDefaults({
+          ...base,
+          ...updates,
+          dailyTargetMinutes: sanitizeDailyTarget(updates.dailyTargetMinutes ?? base.dailyTargetMinutes)
+        });
+        if (!next) {
+          writeProfile(null);
+          return null;
+        }
         writeProfile(next);
         return next;
       });

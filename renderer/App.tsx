@@ -7,11 +7,13 @@ import OnboardingScreen from './components/OnboardingScreen';
 import HomePage from './pages/HomePage';
 import StatsPage from './pages/StatsPage';
 import ProfilePage from './pages/ProfilePage';
+import QuestsPage from '@renderer/pages/QuestsPage';
 import { useAppState } from './context/AppStateContext';
 import { useProfile } from './context/ProfileContext';
 
 const routes = [
   { path: '/home', label: 'Home' },
+  { path: '/quests', label: 'Quests' },
   { path: '/stats', label: 'Stats' },
   { path: '/profile', label: 'Profile' }
 ] as const;
@@ -41,18 +43,43 @@ const App = () => {
   }
 
   return (
-    <Stack direction="column" sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <TitleBar />
-      <Box component="main" sx={{ flex: 1, px: 4, pt: 1, pb: 4, overflow: 'auto' }}>
-        <Routes>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
-      </Box>
-      <BottomNav activePath={activeRoute} routes={routes} />
-    </Stack>
+    <Box sx={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background:
+            'radial-gradient(circle at 10% 20%, rgba(122,108,255,0.18) 0%, transparent 55%), radial-gradient(circle at 85% 15%, rgba(67,255,210,0.18) 0%, transparent 45%), radial-gradient(circle at 50% 85%, rgba(255,140,201,0.18) 0%, transparent 55%)'
+        }}
+      />
+      <Stack direction="column" sx={{ minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+        <TitleBar />
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            px: { xs: 2, sm: 3, md: 6 },
+            pt: { xs: 8, md: 10 },
+            pb: { xs: 12, md: 14 },
+            overflow: 'auto',
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+        >
+          <Box sx={{ width: '100%', maxWidth: 1240 }}>
+            <Routes>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/quests" element={<QuestsPage />} />
+              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </Box>
+        </Box>
+        <BottomNav activePath={activeRoute} routes={routes} />
+      </Stack>
+    </Box>
   );
 };
 
