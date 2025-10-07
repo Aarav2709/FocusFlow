@@ -6,6 +6,8 @@ import HomeIcon from '@mui/icons-material/HomeOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleOutlined';
 import InsightsIcon from '@mui/icons-material/InsightsOutlined';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsportsOutlined';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEventsOutlined';
+import BarChartIcon from '@mui/icons-material/BarChartOutlined';
 
 interface BottomNavProps {
   activePath: string;
@@ -15,6 +17,8 @@ interface BottomNavProps {
 const iconMap: Record<string, React.ReactNode> = {
   '/home': <HomeIcon fontSize="small" />,
   '/quests': <SportsEsportsIcon fontSize="small" />,
+  '/achievements': <EmojiEventsIcon fontSize="small" />,
+  '/analytics': <BarChartIcon fontSize="small" />,
   '/stats': <InsightsIcon fontSize="small" />,
   '/profile': <AccountCircleIcon fontSize="small" />
 };

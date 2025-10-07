@@ -8,12 +8,16 @@ import HomePage from './pages/HomePage';
 import StatsPage from './pages/StatsPage';
 import ProfilePage from './pages/ProfilePage';
 import QuestsPage from '@renderer/pages/QuestsPage';
+import AchievementsPage from './pages/AchievementsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { useAppState } from './context/AppStateContext';
 import { useProfile } from './context/ProfileContext';
 
 const routes = [
   { path: '/home', label: 'Home' },
   { path: '/quests', label: 'Quests' },
+  { path: '/achievements', label: 'Achievements' },
+  { path: '/analytics', label: 'Analytics' },
   { path: '/stats', label: 'Stats' },
   { path: '/profile', label: 'Profile' }
 ] as const;
@@ -71,6 +75,8 @@ const App = () => {
             <Routes>
               <Route path="/home" element={<HomePage />} />
               <Route path="/quests" element={<QuestsPage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/home" replace />} />

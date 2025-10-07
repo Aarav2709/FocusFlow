@@ -11,12 +11,12 @@
 ## ✨ Features
 
 - ⏱️ **Pomodoro focus sessions** with automatic break suggestions, long-break scheduling, and streak tracking.
-- 🧠 **Flashcards workspace** for creating decks, reviewing prompts, and logging mastery status.
-- 🗒️ **Quick notes** editor to capture ideas, references, and study plans with instant search.
-- ✅ **Task management** to organize your day with priorities, due dates, and completion tracking.
-- 📊 **Progress analytics** featuring weekly summaries, activity trends, and productivity insights.
-- ⚙️ **Personalized preferences** including themes, notification settings, and study goals stored locally via SQLite.
+- 📊 **Comprehensive analytics** featuring weekly summaries, activity heatmaps, productivity insights, and performance trends.
+- � **D-Day countdown** to track days until your important exams or events with customizable target dates.
+- 🎯 **Subject management** to organize study sessions by topics with color-coded tracking and todo lists.
+- 👤 **Personalized profile** including customizable nicknames, countries, status messages, and daily focus targets.
 - 🖥️ **Offline-first desktop app** powered by Electron, React, and TypeScript for a smooth cross-platform experience.
+- 🌙 **Dark theme** with modern Material-UI components and gradient accents for extended study sessions.
 
 ## 🚀 Getting Started
 
@@ -55,4 +55,4 @@ npm run build
 npm run package
 ```
 
-Artifacts land in the `release/` directory and are automatically uploaded when you push a tag like `v3.0.0` thanks to the GitHub Actions workflow.
+Artifacts land in the `release/` directory and are automatically uploaded when you push a tag like `v4.0.0` thanks to the GitHub Actions workflow.

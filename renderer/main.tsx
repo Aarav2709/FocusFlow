@@ -7,6 +7,9 @@ import App from './App';
 import { AppStateProvider } from './context/AppStateContext';
 import { StudyProvider } from './context/StudyContext';
 import { ProfileProvider } from './context/ProfileContext';
+import { AchievementsProvider } from './context/AchievementsContext';
+import { FocusModeProvider } from './context/FocusModeContext';
+import { KeyboardShortcutsProvider } from './context/KeyboardShortcutsContext';
 import { useCreateTheme } from './theme/theme';
 
 const Root = () => {
@@ -18,9 +21,15 @@ const Root = () => {
         <ProfileProvider>
           <AppStateProvider>
             <StudyProvider>
-              <HashRouter>
-                <App />
-              </HashRouter>
+              <AchievementsProvider>
+                <FocusModeProvider>
+                  <HashRouter>
+                    <KeyboardShortcutsProvider>
+                      <App />
+                    </KeyboardShortcutsProvider>
+                  </HashRouter>
+                </FocusModeProvider>
+              </AchievementsProvider>
             </StudyProvider>
           </AppStateProvider>
         </ProfileProvider>

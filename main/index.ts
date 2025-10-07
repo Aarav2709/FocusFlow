@@ -46,6 +46,17 @@ const createWindow = async (): Promise<void> => {
   if (isDev) {
     await mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools({ mode: 'detach' });
+
+    // Suppress harmless Autofill DevTools warnings
+    mainWindow.webContents.on('devtools-opened', () => {
+      mainWindow?.webContents.executeJavaScript(`
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          if (args[0]?.includes && args[0].includes('Autofill.enable')) return;
+          originalConsoleError.apply(console, args);
+        };
+      `);
+    });
   } else {
     const indexHtml = path.join(__dirname, '../renderer/index.html');
     await mainWindow.loadFile(indexHtml);

@@ -1,6 +1,6 @@
 {
   "name": "focusflow-desktop",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Desktop version of the FocusFlow study companion built with Electron, React, and Material-UI.",
   "author": "Aarav2709",
   "license": "MIT",
@@ -37,14 +37,16 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
-    "recharts": "^2.10.3"
+    "recharts": "^2.15.4",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",
-  "@types/module-alias": "^2.0.2",
+    "@types/module-alias": "^2.0.2",
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.2",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "@vitejs/plugin-react": "^4.3.4",
@@ -68,14 +70,14 @@
   },
   "postinstall": "node ./scripts/ensure-native.js || true",
   "build": {
-  "appId": "com.focusflow.desktop",
-  "productName": "FocusFlow",
-  "artifactName": "FocusFlow.${ext}",
+    "appId": "com.focusflow.desktop",
+    "productName": "FocusFlow",
+    "artifactName": "FocusFlow.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
-  "icon": "assets/focusflow.png",
+    "icon": "assets/focusflow.png",
     "files": [
       "dist/main/**/*",
       "dist/renderer/**/*",
@@ -88,7 +90,7 @@
     },
     "mac": {
       "category": "public.app-category.education",
-  "icon": "assets/focusflow.icns",
+      "icon": "assets/focusflow.icns",
       "target": [
         "dmg",
         "zip"
@@ -98,9 +100,9 @@
       "target": [
         "nsis"
       ],
-  "artifactName": "FocusFlow.${ext}",
-  "icon": "assets/focusflow.ico",
-  "executableName": "FocusFlow"
+      "artifactName": "FocusFlow.${ext}",
+      "icon": "assets/focusflow.ico",
+      "executableName": "FocusFlow"
     },
     "linux": {
       "target": [
@@ -108,7 +110,7 @@
         "zip"
       ],
       "category": "Education",
-  "icon": "assets/focusflow.png"
+      "icon": "assets/focusflow.png"
     }
   }
 }

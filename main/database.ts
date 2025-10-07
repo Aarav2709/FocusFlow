@@ -44,7 +44,11 @@ export class DatabaseService {
         content TEXT NOT NULL,
         category TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        tags TEXT,
+        folder TEXT,
+        template_type TEXT DEFAULT 'standard',
+        attachments TEXT
       );
 
       CREATE TABLE IF NOT EXISTS tasks (
@@ -53,7 +57,16 @@ export class DatabaseService {
         due_date TEXT,
         completed INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        priority TEXT DEFAULT 'medium',
+        subject_id TEXT,
+        estimated_minutes INTEGER,
+        actual_minutes INTEGER,
+        tags TEXT,
+        parent_task_id TEXT,
+        recurrence TEXT,
+        depends_on TEXT,
+        position INTEGER DEFAULT 0
       );
 
       CREATE TABLE IF NOT EXISTS decks (
@@ -73,7 +86,21 @@ export class DatabaseService {
         successes INTEGER DEFAULT 0,
         failures INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        ease_factor REAL DEFAULT 2.5,
+        interval_days INTEGER DEFAULT 0,
+        next_review_date TEXT,
+        last_reviewed_at TEXT,
+        learning_step INTEGER DEFAULT 0,
+        card_type TEXT DEFAULT 'basic'
+      );
+
+      CREATE TABLE IF NOT EXISTS card_review_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        card_id INTEGER NOT NULL,
+        rating TEXT NOT NULL,
+        review_date TEXT NOT NULL,
+        time_taken_ms INTEGER
       );
 
       CREATE TABLE IF NOT EXISTS study_sessions (
@@ -86,6 +113,65 @@ export class DatabaseService {
       CREATE TABLE IF NOT EXISTS preferences (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS planner_events (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        event_type TEXT NOT NULL,
+        subject_id TEXT,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        all_day INTEGER DEFAULT 0,
+        recurrence TEXT DEFAULT 'none',
+        recurrence_end TEXT,
+        reminder_minutes INTEGER DEFAULT 0,
+        completed INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS study_templates (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        template_type TEXT NOT NULL,
+        config TEXT NOT NULL,
+        is_custom INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS goals (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        goal_type TEXT NOT NULL,
+        target_minutes INTEGER NOT NULL,
+        subject_id TEXT,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        completed INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS goal_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        goal_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        minutes_logged INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS blocked_websites (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        enabled INTEGER DEFAULT 1
+      );
+
+      CREATE TABLE IF NOT EXISTS blocked_apps (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        path TEXT NOT NULL,
+        enabled INTEGER DEFAULT 1
       );
     `;
 

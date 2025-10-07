@@ -22,24 +22,26 @@ import {
 } from '@mui/material';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { useSnackbar } from 'notistack';
-import { useProfile, DEFAULT_DAILY_TARGET_MINUTES } from '../context/ProfileContext';
+import { useProfile, DEFAULT_DAILY_TARGET_MINUTES, DEFAULT_DDAY_DATE } from '../context/ProfileContext';
 import { useStudy } from '../context/StudyContext';
 import { COUNTRIES } from '../constants/countries';
 
-type EditableField = 'nickname' | 'country' | 'status' | 'dailyTargetMinutes' | null;
+type EditableField = 'nickname' | 'country' | 'status' | 'dailyTargetMinutes' | 'dDayDate' | null;
 
 const labelMap: Record<Exclude<EditableField, null>, string> = {
   nickname: 'Nickname',
   country: 'Country',
   status: 'Status message',
-  dailyTargetMinutes: 'Daily focus target'
+  dailyTargetMinutes: 'Daily focus target',
+  dDayDate: 'D-Day target date'
 };
 
 const helperMap: Record<Exclude<EditableField, null>, string> = {
   nickname: 'This name appears across your study groups.',
   country: 'Help friends see where you are studying from.',
   status: 'Share what you are focusing on today.',
-  dailyTargetMinutes: 'Set your daily focus goal in minutes.'
+  dailyTargetMinutes: 'Set your daily focus goal in minutes.',
+  dDayDate: 'Set your target date for exam or important event.'
 };
 
 const XP_PER_MINUTE = 12;
@@ -99,6 +101,7 @@ const ProfileView = () => {
   const [country, setCountry] = useState(profile?.country ?? COUNTRIES[0]);
   const [status, setStatus] = useState(profile?.status ?? '');
   const [dailyTarget, setDailyTarget] = useState(profile?.dailyTargetMinutes ?? DEFAULT_DAILY_TARGET_MINUTES);
+  const [dDayDate, setDDayDate] = useState(profile?.dDayDate ?? DEFAULT_DDAY_DATE);
 
   const [dialogField, setDialogField] = useState<EditableField>(null);
   const [dialogValue, setDialogValue] = useState('');
@@ -109,6 +112,7 @@ const ProfileView = () => {
     setCountry(profile?.country ?? COUNTRIES[0]);
     setStatus(profile?.status ?? '');
     setDailyTarget(profile?.dailyTargetMinutes ?? DEFAULT_DAILY_TARGET_MINUTES);
+    setDDayDate(profile?.dDayDate ?? DEFAULT_DDAY_DATE);
   }, [profile]);
 
   const initials = useMemo(() => {
@@ -124,6 +128,8 @@ const ProfileView = () => {
       setDialogValue(country);
     } else if (field === 'dailyTargetMinutes') {
       setDialogValue(String(dailyTarget));
+    } else if (field === 'dDayDate') {
+      setDialogValue(dDayDate);
     } else {
       setDialogValue(status);
     }
@@ -138,6 +144,10 @@ const ProfileView = () => {
     if (field === 'nickname') return nickname || 'Add nickname';
     if (field === 'country') return country;
     if (field === 'dailyTargetMinutes') return `${dailyTarget} min`;
+    if (field === 'dDayDate') {
+      const date = new Date(dDayDate);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
     return status || 'Add status';
   };
 
@@ -168,6 +178,22 @@ const ProfileView = () => {
         const minutes = Math.min(1440, Math.round(numericValue));
         setDailyTarget(minutes);
         updateProfile({ dailyTargetMinutes: minutes });
+      } else if (dialogField === 'dDayDate') {
+        // Validate date format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(dialogValue)) {
+          enqueueSnackbar('Please enter a valid date.', { variant: 'warning' });
+          setSaving(false);
+          return;
+        }
+        const parsedDate = new Date(dialogValue);
+        if (isNaN(parsedDate.getTime())) {
+          enqueueSnackbar('Please enter a valid date.', { variant: 'warning' });
+          setSaving(false);
+          return;
+        }
+        setDDayDate(dialogValue);
+        updateProfile({ dDayDate: dialogValue });
       } else {
         setStatus(trimmed);
         updateProfile({ status: trimmed });
@@ -242,7 +268,7 @@ const ProfileView = () => {
 
         <Box sx={{ bgcolor: 'background.paper', borderRadius: 3, boxShadow: 6, overflow: 'hidden', width: '100%' }}>
           <List disablePadding>
-            {(['nickname', 'country', 'status', 'dailyTargetMinutes'] as Array<Exclude<EditableField, null>>).map((field, index, array) => (
+            {(['nickname', 'country', 'status', 'dailyTargetMinutes', 'dDayDate'] as Array<Exclude<EditableField, null>>).map((field, index, array) => (
               <ListItem key={field} disablePadding sx={{ display: 'block' }}>
                 <ListItemButton
                   onClick={() => openDialog(field)}
@@ -303,6 +329,18 @@ const ProfileView = () => {
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDialogValue(event.target.value)}
                       sx={{ mt: 1 }}
                       inputProps={{ min: 1, max: 1440, step: 5 }}
+                    />
+                  ) : field === 'dDayDate' ? (
+                    <TextField
+                      fullWidth
+                      autoFocus
+                      type="date"
+                      label="D-Day target date"
+                      value={dialogValue}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDialogValue(event.target.value)}
+                      sx={{ mt: 1 }}
+                      InputLabelProps={{ shrink: true }}
+                      helperText={helperMap[field]}
                     />
                   ) : (
                     <TextField

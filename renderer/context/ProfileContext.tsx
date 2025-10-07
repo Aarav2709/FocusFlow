@@ -1,12 +1,14 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
 export const DEFAULT_DAILY_TARGET_MINUTES = 90;
+export const DEFAULT_DDAY_DATE = '2026-11-01'; // Default target date
 
 export type UserProfile = {
   nickname: string;
   country: string;
   status?: string;
   dailyTargetMinutes?: number;
+  dDayDate?: string; // ISO date string for D-Day target
 };
 
 type ProfileContextValue = {
@@ -32,7 +34,8 @@ const applyDefaults = (profile: UserProfile | null): UserProfile | null => {
     nickname: profile.nickname,
     country: profile.country,
     status: profile.status ?? '',
-    dailyTargetMinutes: sanitizeDailyTarget(profile.dailyTargetMinutes)
+    dailyTargetMinutes: sanitizeDailyTarget(profile.dailyTargetMinutes),
+    dDayDate: profile.dDayDate ?? DEFAULT_DDAY_DATE
   };
 };
 
@@ -79,11 +82,18 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const updateProfile = useCallback(
     (updates: Partial<UserProfile>) => {
       setProfile((prev) => {
-        const base: UserProfile = prev ?? { nickname: '', country: '', status: '', dailyTargetMinutes: DEFAULT_DAILY_TARGET_MINUTES };
+        const base: UserProfile = prev ?? {
+          nickname: '',
+          country: '',
+          status: '',
+          dailyTargetMinutes: DEFAULT_DAILY_TARGET_MINUTES,
+          dDayDate: DEFAULT_DDAY_DATE
+        };
         const next = applyDefaults({
           ...base,
           ...updates,
-          dailyTargetMinutes: sanitizeDailyTarget(updates.dailyTargetMinutes ?? base.dailyTargetMinutes)
+          dailyTargetMinutes: sanitizeDailyTarget(updates.dailyTargetMinutes ?? base.dailyTargetMinutes),
+          dDayDate: updates.dDayDate ?? base.dDayDate
         });
         if (!next) {
           writeProfile(null);

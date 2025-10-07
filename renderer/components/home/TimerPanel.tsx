@@ -34,6 +34,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useStudy, StudySubject, SubjectTodo } from '../../context/StudyContext';
 import { useProfile, DEFAULT_DAILY_TARGET_MINUTES } from '../../context/ProfileContext';
+import { useAchievements, StudyStats } from '../../context/AchievementsContext';
+import { useSnackbar } from 'notistack';
 import {
   XP_PER_MINUTE,
   computeLevel,
@@ -128,6 +130,8 @@ const TimerPanel: React.FC = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [todoDrafts, setTodoDrafts] = useState<Record<string, string>>({});
   const { profile } = useProfile();
+  const { checkAchievements } = useAchievements();
+  const { enqueueSnackbar } = useSnackbar();
   const dailyTargetMinutes = useMemo(
     () => Math.max(profile?.dailyTargetMinutes ?? DEFAULT_DAILY_TARGET_MINUTES, 1),
     [profile?.dailyTargetMinutes]
@@ -200,6 +204,90 @@ const TimerPanel: React.FC = () => {
       }).format(new Date()),
     []
   );
+
+  // Calculate completed todos across all subjects
+  const completedQuests = useMemo(
+    () => subjects.reduce((acc, subject: StudySubject) => acc + subject.todos.filter((todo) => todo.completed).length, 0),
+    [subjects]
+  );
+
+  // Count time-based sessions (early bird, night owl, weekend)
+  const timeBasedSessions = useMemo(() => {
+    let earlyBird = 0;
+    let nightOwl = 0;
+    let weekend = 0;
+
+    Object.entries(history as StudyHistory).forEach(([dateKey, entry]) => {
+      if (entry.focusSeconds > 0) {
+        const date = new Date(dateKey);
+        const hour = date.getHours();
+        const dayOfWeek = date.getDay();
+
+        // Approximation: if they studied, count as a session
+        if (hour < 8) earlyBird++;
+        if (hour >= 22) nightOwl++;
+        if (dayOfWeek === 0 || dayOfWeek === 6) weekend++;
+      }
+    });
+
+    return { earlyBird, nightOwl, weekend };
+  }, [history]);
+
+  // Count consecutive days hitting daily target
+  const dailyGoalsHit = useMemo(() => {
+    const keys = Object.keys(history).sort().reverse();
+    let consecutive = 0;
+
+    for (const key of keys) {
+      const entry = history[key];
+      const minutes = Math.round(entry.focusSeconds / 60);
+      if (minutes >= dailyTargetMinutes) {
+        consecutive++;
+      } else {
+        break;
+      }
+    }
+
+    return consecutive;
+  }, [history, dailyTargetMinutes]);
+
+  // Calculate total sessions
+  const totalSessions = useMemo(() => Object.keys(history).length, [history]);
+
+  // Check achievements periodically when stats change
+  React.useEffect(() => {
+    const stats: StudyStats = {
+      totalFocusMinutes: lifetimeMinutes,
+      currentStreak: studyStreak,
+      totalSessions,
+      earlyBirdSessions: timeBasedSessions.earlyBird,
+      nightOwlSessions: timeBasedSessions.nightOwl,
+      weekendSessions: timeBasedSessions.weekend,
+      dailyGoalsHit,
+      completedQuests,
+      currentLevel: level
+    };
+
+    const newAchievements = checkAchievements(stats);
+
+    // Show toast for each new unlock
+    newAchievements.forEach((achievement) => {
+      enqueueSnackbar(`🎉 Achievement Unlocked: ${achievement.name}!`, {
+        variant: 'success',
+        autoHideDuration: 5000
+      });
+    });
+  }, [
+    lifetimeMinutes,
+    studyStreak,
+    totalSessions,
+    timeBasedSessions,
+    dailyGoalsHit,
+    completedQuests,
+    level,
+    checkAchievements,
+    enqueueSnackbar
+  ]);
 
   const handleAddSubject = () => {
     if (!newSubject.trim()) return;
